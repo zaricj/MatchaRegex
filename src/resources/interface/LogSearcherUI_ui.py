@@ -23,11 +23,12 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
     QVBoxLayout, QWidget)
 
 from resources.interface.qrc import LogSearcher_resource_rc
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1206, 1010)
+        MainWindow.resize(1206, 1060)
         font = QFont()
         font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
@@ -383,6 +384,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_item_widget.setContentsMargins(12, 12, 12, 12)
         self.section_label_3 = QLabel(self.pattern_list_frame)
         self.section_label_3.setObjectName(u"section_label_3")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.section_label_3.sizePolicy().hasHeightForWidth())
+        self.section_label_3.setSizePolicy(sizePolicy2)
+        self.section_label_3.setMinimumSize(QSize(0, 0))
+        self.section_label_3.setMaximumSize(QSize(16777215, 16777215))
         self.section_label_3.setFont(font2)
         self.section_label_3.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
@@ -392,13 +400,13 @@ class Ui_MainWindow(object):
 
         self.list_widget_regex = QListWidget(self.pattern_list_frame)
         self.list_widget_regex.setObjectName(u"list_widget_regex")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.list_widget_regex.sizePolicy().hasHeightForWidth())
-        self.list_widget_regex.setSizePolicy(sizePolicy2)
-        self.list_widget_regex.setMinimumSize(QSize(0, 80))
-        self.list_widget_regex.setMaximumSize(QSize(16777215, 300))
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.list_widget_regex.sizePolicy().hasHeightForWidth())
+        self.list_widget_regex.setSizePolicy(sizePolicy3)
+        self.list_widget_regex.setMinimumSize(QSize(0, 150))
+        self.list_widget_regex.setMaximumSize(QSize(16777215, 16777215))
         self.list_widget_regex.setStyleSheet(u"")
         self.list_widget_regex.setResizeMode(QListView.ResizeMode.Fixed)
 
@@ -425,11 +433,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.section_label_program_output = QLabel(self.output_frame)
         self.section_label_program_output.setObjectName(u"section_label_program_output")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
-        self.section_label_program_output.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
+        self.section_label_program_output.setSizePolicy(sizePolicy2)
         self.section_label_program_output.setFont(font2)
         self.section_label_program_output.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
@@ -468,8 +473,8 @@ class Ui_MainWindow(object):
 
         self.program_output = QTextEdit(self.output_frame)
         self.program_output.setObjectName(u"program_output")
-        sizePolicy2.setHeightForWidth(self.program_output.sizePolicy().hasHeightForWidth())
-        self.program_output.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.program_output.sizePolicy().hasHeightForWidth())
+        self.program_output.setSizePolicy(sizePolicy3)
         self.program_output.setMinimumSize(QSize(0, 80))
         self.program_output.setMaximumSize(QSize(16777215, 16777215))
         font4 = QFont()
@@ -591,8 +596,8 @@ class Ui_MainWindow(object):
 
         self.table_widget_results = QTableWidget(self.results_frame)
         self.table_widget_results.setObjectName(u"table_widget_results")
-        sizePolicy2.setHeightForWidth(self.table_widget_results.sizePolicy().hasHeightForWidth())
-        self.table_widget_results.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.table_widget_results.sizePolicy().hasHeightForWidth())
+        self.table_widget_results.setSizePolicy(sizePolicy3)
         self.table_widget_results.setMinimumSize(QSize(0, 180))
         self.table_widget_results.verticalHeader().setCascadingSectionResizes(False)
 
