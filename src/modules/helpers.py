@@ -27,9 +27,19 @@ class HelperMethods:
             self.show_relevant_info(folder_path=line_edit.text())
     
     def input_field_text_changed(self, line_edit: QLineEdit) -> None:
+        """On input field text change, this method gets triggered. It runs the 'show_relevant_info' method
+
+        Args:
+            line_edit (QLineEdit): The input field to look for
+        """
         self.show_relevant_info(folder_path=line_edit.text())
     
     def show_relevant_info(self, folder_path: str) -> None:
+        """Prints out the relevant info based on browse button press or just text changed in the specified input field
+
+        Args:
+            folder_path (str): Path of the folder which is grabbed from the QFileDialog window.
+        """
         path = Path(folder_path)
         if path.exists() and path.is_dir():
             

@@ -1,32 +1,23 @@
-from modules.helpers import HelperMethods, SearcherThread
+# File: main.py 
+from modules.signal_handlers import SignalHandlerMixin
+from modules.helpers import HelperMethods
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QMenu,
     QMessageBox,
-    QTableWidgetItem
 )
-from PySide6.QtGui import QIcon, QAction, QCloseEvent
 from PySide6.QtCore import (
-    Qt,
-    Signal,
     Slot,
-    QFile,
-    QTextStream,
-    QIODevice,
-    QSettings,
     QThreadPool,
 )
 import sys
 from pathlib import Path
-import pandas as pd
 
 # from resources.interface.qrc import LogSearcher_resource_rc
 
-
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
         super().__init__()
 
@@ -35,39 +26,17 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         
         from modules.regex_builder import RegexBuilder
-        from modules.helpers import HelperMethods
         self.helper = HelperMethods(main_window=self)
         self.regex_builder = RegexBuilder(main_window=self)
         
         self.regex_patterns: list[str] = []
         
         self.init_thread_pool()
-        self.connect_events()
-
+        self.setup_application()
         
-    def connect_events(self):
-        
-        # Input text changed
-        self.ui.line_edit_files_folder.textChanged.connect(self.on_filesFolderTextChanged)
-        
-        # === Combobox events ===
-        
-        # Font size for program output item changed
-        self.ui.combobox_font_size_program_output.currentTextChanged.connect(lambda: self.ui.program_output.setStyleSheet(f'font: {self.ui.combobox_font_size_program_output.currentText()} "Consolas";'))
-        
-        # === Button events === 
-        
-        # Browse folder button click event
-        self.ui.button_browse_folder.clicked.connect(self.on_browseFolder)
-        
-        # Convert string to regex button click event
-        self.ui.button_string_to_regex.clicked.connect(self.on_convertString)
-        
-        # Add regex button click event
-        self.ui.button_add_regex_to_list_widget.clicked.connect(self.add_regexToListWidget)
-        
-        # Search button click event
-        self.ui.button_start_search.clicked.connect(self.on_startSearch)
+    def setup_application(self):
+        """Initialize the application components"""
+        self.connect_ui_events()  # From mixin
         
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -83,14 +52,14 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_filesFolderTextChanged(self):
         input_field = self.ui.line_edit_files_folder
-        self._connect_helper_method_signals(self.helper) # Connect signals from helper methods
+        self.connect_helper_method_signals(self.helper) # Connect signals from helper methods
         self.helper.input_field_text_changed(line_edit=input_field)
         
     # Button event handlers
     @Slot()
     def on_browseFolder(self): # Handler for "Browse Folder" button
         input_field = self.ui.line_edit_files_folder
-        self._connect_helper_method_signals(self.helper) # Connect signals from helper methods
+        self.connect_helper_method_signals(self.helper) # Connect signals from helper methods
         self.helper.browse_folder_path(line_edit=input_field)
     
     @Slot()
@@ -166,12 +135,13 @@ class MainWindow(QMainWindow):
             self.ui.statusbar.showMessage("Search started...", 5000)
             
             # Create and start the search thread
-            search_thread = SearcherThread(operation='search_files', 
-                                        main_window=self,
-                                        regex_patterns=regex_patterns,
-                                        headers=headers,
-                                        folder_path=folder_path,
-                                        file_patterns=file_patterns)
+            search_thread = SearcherThread(
+                operation='search_files', 
+                main_window=self,
+                regex_patterns=regex_patterns,
+                headers=headers,
+                folder_path=folder_path,
+                file_patterns=file_patterns)
             
             self._connect_searcher_thread_signals(search_thread) # Connected signals and slots
             
@@ -180,53 +150,6 @@ class MainWindow(QMainWindow):
         except Exception as ex:
             QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
             
-    # Slots for handling signals from threads can be added here if needed
-    @Slot(str, str)
-    def handle_info_message(self, title: str, message: str):
-        QMessageBox.information(self, title, message)
-        
-    @Slot(str, str)
-    def handle_warning_message(self, title: str, message: str):
-        QMessageBox.warning(self, title, message)
-        
-    @Slot(str, str)
-    def handle_critical_message(self, title: str, message: str):
-        QMessageBox.critical(self, title, message)
-        
-    @Slot(str)
-    def handle_program_output(self, text: str):
-        self.ui.program_output.append(text)
-        
-    @Slot(object, bool)
-    def handle_widget_enable(self, widget, enable: bool):
-        widget.setEnabled(enable)
-        
-    @Slot(pd.DataFrame)
-    def handle_search_finished(self, results: pd.DataFrame):
-        self.ui.statusbar.showMessage("Search finished.", 5000)
-        # Here you can handle the results DataFrame as needed
-        # For example, display in a table or save to a file
-        self.ui.table_widget_results.clear()
-        if not results.empty:
-            self.ui.table_widget_results.setRowCount(len(results))
-            self.ui.table_widget_results.setColumnCount(len(results.columns))
-            self.ui.table_widget_results.setHorizontalHeaderLabels(results.columns.tolist())
-        for row, record in results.iterrows():
-            for col, (key, value) in enumerate(record.items()):
-                self.ui.table_widget_results.setItem(row, col, QTableWidgetItem(str(value)))
-        
-    def _connect_searcher_thread_signals(self, worker: SearcherThread):
-        worker.signals.message_information.connect(self.handle_info_message)
-        worker.signals.message_warning.connect(self.handle_warning_message)
-        worker.signals.message_critical.connect(self.handle_critical_message)
-        worker.signals.program_output_text.connect(self.handle_program_output)
-        worker.signals.widget_enable.connect(self.handle_widget_enable)
-        worker.signals.finished.connect(self.handle_search_finished)
-        worker.signals.statusbar_show_message.connect(self.ui.statusbar.showMessage)
-        
-    def _connect_helper_method_signals(self, helper: HelperMethods):
-        helper.signals.program_output_text.connect(self.handle_program_output)
-        helper.signals.statusbar_show_message.connect(self.ui.statusbar.showMessage)
             
 if __name__ == "__main__":
     # Initialize the application
