@@ -62,14 +62,18 @@ class SignalHandlerMixin:
     
     def connect_ui_events(self):
         """Connect all UI element events to their handlers"""
+        
+        # ====== LINE EDIT EVENTS ======
+        
         # Input text changed
         self.ui.line_edit_files_folder.textChanged.connect(self.on_filesFolderTextChanged)
         
-        # === Combobox events ===
+        # ====== COMBOBOX EVENTS ======
+        
         # Font size for program output item changed
         self.ui.combobox_font_size_program_output.currentTextChanged.connect(lambda: self.ui.program_output.setStyleSheet(f'font: {self.ui.combobox_font_size_program_output.currentText()} "Consolas";'))
         
-        # === Button events === 
+        # ====== BUTTON EVENTS ====== 
         
         # Browse folder button click event
         self.ui.button_browse_folder.clicked.connect(self.on_browseFolder)
