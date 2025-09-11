@@ -18,10 +18,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
     QHeaderView, QLabel, QLineEdit, QListView,
     QListWidget, QListWidgetItem, QMainWindow, QMenuBar,
-    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
-    QStatusBar, QTableWidget, QTableWidgetItem, QTextEdit,
-    QVBoxLayout, QWidget)
-
+    QProgressBar, QPushButton, QSizePolicy, QSpacerItem,
+    QSpinBox, QStatusBar, QTableWidget, QTableWidgetItem,
+    QTextEdit, QVBoxLayout, QWidget)
 from resources.interface.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
@@ -33,6 +32,7 @@ class Ui_MainWindow(object):
         font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
         font.setBold(False)
+        font.setKerning(True)
         MainWindow.setFont(font)
         icon = QIcon()
         icon.addFile(u":/images/clean-emissions-svgrepo-com.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
 "    QLineEdit {\n"
 "        border: 1px solid #404040;\n"
 "        border-radius: 4px;\n"
-"        padding: 6px 8px;\n"
+"        padding: 4px 10px;;\n"
 "        background-color: #2d2d30;\n"
 "        color: #ffffff;\n"
 "        font-size: 9pt;\n"
@@ -60,43 +60,6 @@ class Ui_MainWindow(object):
 "    QLineEdit:focus {\n"
 "        border-color: #0078d4;\n"
 "        outline: none;\n"
-"    }\n"
-"    \n"
-"    QPushButton {\n"
-"        background-color: #0078d4;\n"
-"        color: white;\n"
-"        border: none;\n"
-"        border-radius: 4px;\n"
-"        padding: 6px 12px;\n"
-"        font-weight: 600;\n"
-"        font-size: 9pt;\n"
-"    }\n"
-"    \n"
-"    QPushButton:hover {\n"
-"        background-color: #106ebe;\n"
-"    }\n"
-"    \n"
-"    QPushButton:pressed {\n"
-"        background-color: #005a9e;\n"
-"    }\n"
-"    \n"
-"    QPushButton#button_start_search {\n"
-"       "
-                        " background-color: #107c10;\n"
-"        font-size: 9pt;\n"
-"        padding: 8px 16px;\n"
-"    }\n"
-"    \n"
-"    QPushButton#button_start_search:hover {\n"
-"        background-color: #0e6e0e;\n"
-"    }\n"
-"    \n"
-"    QPushButton#button_string_to_regex {\n"
-"        background-color: #8a2be2;\n"
-"    }\n"
-"    \n"
-"    QPushButton#button_string_to_regex:hover {\n"
-"        background-color: #7b2bc7;\n"
 "    }\n"
 "    \n"
 "    QListWidget {\n"
@@ -113,14 +76,14 @@ class Ui_MainWindow(object):
 "        border-radius: 4px;\n"
 "        background-color: #2d2d30;\n"
 "        color: #ffffff;\n"
-"        alternate-background-color: #323233;\n"
+"        alternate-background-color: "
+                        "#323233;\n"
 "        gridline-color: #404040;\n"
 "    }\n"
 "    \n"
 "    QTableWidget::item {\n"
 "        padding: 4px;\n"
-""
-                        "    }\n"
+"    }\n"
 "    \n"
 "    QTableWidget QHeaderView::section {\n"
 "        background-color: #404040;\n"
@@ -154,14 +117,45 @@ class Ui_MainWindow(object):
 "    \n"
 "    QSpinBox::up-button, QSpinBox::down-button {\n"
 "        background-color: #404040;\n"
-"        border: none;\n"
+""
+                        "        border: none;\n"
 "        width: 16px;\n"
 "    }\n"
 "    \n"
-"    QSpinBox::up-button:hover, QSpinBox::down-butt"
-                        "on:hover {\n"
+"    QSpinBox::up-button:hover, QSpinBox::down-button:hover {\n"
 "        background-color: #505050;\n"
 "    }\n"
+"\n"
+"/* Progress Bar */\n"
+"QProgressBar {\n"
+"    border: none;\n"
+"    border-radius: 6px;\n"
+"    text-align: center;\n"
+"    height: 12px;\n"
+"    background: #3a3a3a;\n"
+"    color: #f3f3f3;\n"
+"}\n"
+"QProgressBar::chunk {\n"
+"    border-radius: 6px;\n"
+"    background-color: #0078D7;\n"
+"}\n"
+"\n"
+"/* Checkboxes */\n"
+"QCheckBox {\n"
+"    spacing: 6px;\n"
+"    color: #f3f3f3;\n"
+"}\n"
+"QCheckBox::indicator {\n"
+"    width: 14px;\n"
+"    height: 14px;\n"
+"    border: 1px solid #888;\n"
+"    border-radius: 3px;\n"
+"    background: #2b2b2b;\n"
+"}\n"
+"QCheckBox::indicator:checked {\n"
+"    background-color: #0078D7;\n"
+"    image: url(:/icons/checkmark.png); /* optional checkmark icon */\n"
+"}\n"
 "   ")
         MainWindow.setAnimated(True)
         self.centralwidget = QWidget(MainWindow)
@@ -230,6 +224,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_01.setObjectName(u"horizontalLayout_01")
         self.label_files_folder = QLabel(self.input_frame)
         self.label_files_folder.setObjectName(u"label_files_folder")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_files_folder.sizePolicy().hasHeightForWidth())
+        self.label_files_folder.setSizePolicy(sizePolicy)
         self.label_files_folder.setMinimumSize(QSize(90, 0))
         font3 = QFont()
         font3.setFamilies([u"Segoe UI"])
@@ -241,19 +240,19 @@ class Ui_MainWindow(object):
 
         self.line_edit_files_folder = QLineEdit(self.input_frame)
         self.line_edit_files_folder.setObjectName(u"line_edit_files_folder")
-        self.line_edit_files_folder.setMinimumSize(QSize(0, 30))
+        self.line_edit_files_folder.setMinimumSize(QSize(0, 0))
         self.line_edit_files_folder.setClearButtonEnabled(True)
 
         self.horizontalLayout_01.addWidget(self.line_edit_files_folder)
 
         self.button_browse_folder = QPushButton(self.input_frame)
         self.button_browse_folder.setObjectName(u"button_browse_folder")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.button_browse_folder.sizePolicy().hasHeightForWidth())
-        self.button_browse_folder.setSizePolicy(sizePolicy)
-        self.button_browse_folder.setMinimumSize(QSize(100, 30))
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.button_browse_folder.sizePolicy().hasHeightForWidth())
+        self.button_browse_folder.setSizePolicy(sizePolicy1)
+        self.button_browse_folder.setMinimumSize(QSize(100, 0))
         self.button_browse_folder.setFont(font3)
         icon1 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
         self.button_browse_folder.setIcon(icon1)
@@ -273,7 +272,7 @@ class Ui_MainWindow(object):
 
         self.line_edit_file_pattern = QLineEdit(self.input_frame)
         self.line_edit_file_pattern.setObjectName(u"line_edit_file_pattern")
-        self.line_edit_file_pattern.setMinimumSize(QSize(0, 30))
+        self.line_edit_file_pattern.setMinimumSize(QSize(0, 0))
         self.line_edit_file_pattern.setClearButtonEnabled(True)
 
         self.horizontalLayout_04.addWidget(self.line_edit_file_pattern)
@@ -304,21 +303,21 @@ class Ui_MainWindow(object):
 
         self.line_edit_string_to_regex = QLineEdit(self.input_frame)
         self.line_edit_string_to_regex.setObjectName(u"line_edit_string_to_regex")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.line_edit_string_to_regex.sizePolicy().hasHeightForWidth())
-        self.line_edit_string_to_regex.setSizePolicy(sizePolicy1)
-        self.line_edit_string_to_regex.setMinimumSize(QSize(0, 30))
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.line_edit_string_to_regex.sizePolicy().hasHeightForWidth())
+        self.line_edit_string_to_regex.setSizePolicy(sizePolicy2)
+        self.line_edit_string_to_regex.setMinimumSize(QSize(0, 0))
         self.line_edit_string_to_regex.setClearButtonEnabled(True)
 
         self.horizontalLayout_03.addWidget(self.line_edit_string_to_regex)
 
         self.button_string_to_regex = QPushButton(self.input_frame)
         self.button_string_to_regex.setObjectName(u"button_string_to_regex")
-        sizePolicy.setHeightForWidth(self.button_string_to_regex.sizePolicy().hasHeightForWidth())
-        self.button_string_to_regex.setSizePolicy(sizePolicy)
-        self.button_string_to_regex.setMinimumSize(QSize(100, 30))
+        sizePolicy1.setHeightForWidth(self.button_string_to_regex.sizePolicy().hasHeightForWidth())
+        self.button_string_to_regex.setSizePolicy(sizePolicy1)
+        self.button_string_to_regex.setMinimumSize(QSize(100, 0))
         self.button_string_to_regex.setFont(font3)
 
         self.horizontalLayout_03.addWidget(self.button_string_to_regex)
@@ -338,7 +337,7 @@ class Ui_MainWindow(object):
 
         self.line_edit_regex = QLineEdit(self.input_frame)
         self.line_edit_regex.setObjectName(u"line_edit_regex")
-        self.line_edit_regex.setMinimumSize(QSize(0, 30))
+        self.line_edit_regex.setMinimumSize(QSize(0, 0))
         self.line_edit_regex.setClearButtonEnabled(True)
 
         self.horizontalLayout_02.addWidget(self.line_edit_regex)
@@ -348,16 +347,9 @@ class Ui_MainWindow(object):
 
         self.button_add_regex_to_list_widget = QPushButton(self.input_frame)
         self.button_add_regex_to_list_widget.setObjectName(u"button_add_regex_to_list_widget")
-        self.button_add_regex_to_list_widget.setMinimumSize(QSize(0, 28))
+        self.button_add_regex_to_list_widget.setMinimumSize(QSize(0, 0))
         self.button_add_regex_to_list_widget.setFont(font3)
-        self.button_add_regex_to_list_widget.setStyleSheet(u"\n"
-"             QPushButton {\n"
-"                 background-color: #6f42c1;\n"
-"             }\n"
-"             QPushButton:hover {\n"
-"                 background-color: #5a36a0;\n"
-"             }\n"
-"            ")
+        self.button_add_regex_to_list_widget.setStyleSheet(u"")
         icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
         self.button_add_regex_to_list_widget.setIcon(icon2)
         self.button_add_regex_to_list_widget.setIconSize(QSize(16, 16))
@@ -384,11 +376,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_item_widget.setContentsMargins(12, 12, 12, 12)
         self.section_label_3 = QLabel(self.pattern_list_frame)
         self.section_label_3.setObjectName(u"section_label_3")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.section_label_3.sizePolicy().hasHeightForWidth())
-        self.section_label_3.setSizePolicy(sizePolicy2)
+        sizePolicy.setHeightForWidth(self.section_label_3.sizePolicy().hasHeightForWidth())
+        self.section_label_3.setSizePolicy(sizePolicy)
         self.section_label_3.setMinimumSize(QSize(0, 0))
         self.section_label_3.setMaximumSize(QSize(16777215, 16777215))
         self.section_label_3.setFont(font2)
@@ -412,6 +401,21 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_item_widget.addWidget(self.list_widget_regex)
 
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.button_regex_pattern_remove_selected = QPushButton(self.pattern_list_frame)
+        self.button_regex_pattern_remove_selected.setObjectName(u"button_regex_pattern_remove_selected")
+
+        self.horizontalLayout_4.addWidget(self.button_regex_pattern_remove_selected)
+
+        self.button_regex_pattern_remove_all = QPushButton(self.pattern_list_frame)
+        self.button_regex_pattern_remove_all.setObjectName(u"button_regex_pattern_remove_all")
+
+        self.horizontalLayout_4.addWidget(self.button_regex_pattern_remove_all)
+
+
+        self.verticalLayout_item_widget.addLayout(self.horizontalLayout_4)
+
 
         self.verticalLayout_left.addWidget(self.pattern_list_frame)
 
@@ -433,8 +437,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.section_label_program_output = QLabel(self.output_frame)
         self.section_label_program_output.setObjectName(u"section_label_program_output")
-        sizePolicy2.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
-        self.section_label_program_output.setSizePolicy(sizePolicy2)
+        sizePolicy.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
+        self.section_label_program_output.setSizePolicy(sizePolicy)
         self.section_label_program_output.setFont(font2)
         self.section_label_program_output.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
@@ -488,6 +492,13 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_program_output.addWidget(self.program_output)
 
+        self.progress_bar = QProgressBar(self.output_frame)
+        self.progress_bar.setObjectName(u"progress_bar")
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+
+        self.verticalLayout_program_output.addWidget(self.progress_bar)
+
 
         self.verticalLayout_left.addWidget(self.output_frame)
 
@@ -519,27 +530,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_table_widget.addWidget(self.section_label_4)
 
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(8)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(-1, 0, -1, 4)
-        self.label_headers = QLabel(self.results_frame)
-        self.label_headers.setObjectName(u"label_headers")
-        self.label_headers.setMinimumSize(QSize(80, 0))
-        self.label_headers.setFont(font3)
-
-        self.horizontalLayout.addWidget(self.label_headers)
-
-        self.line_edit_headers = QLineEdit(self.results_frame)
-        self.line_edit_headers.setObjectName(u"line_edit_headers")
-        self.line_edit_headers.setMinimumSize(QSize(0, 30))
-        self.line_edit_headers.setClearButtonEnabled(True)
-
-        self.horizontalLayout.addWidget(self.line_edit_headers)
-
-
-        self.verticalLayout_table_widget.addLayout(self.horizontalLayout)
-
         self.horizontalLayout_table_settings = QHBoxLayout()
         self.horizontalLayout_table_settings.setSpacing(12)
         self.horizontalLayout_table_settings.setObjectName(u"horizontalLayout_table_settings")
@@ -556,7 +546,7 @@ class Ui_MainWindow(object):
 
         self.spinBox = QSpinBox(self.results_frame)
         self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.setMinimumSize(QSize(60, 26))
+        self.spinBox.setMinimumSize(QSize(60, 0))
         self.spinBox.setMinimum(1)
         self.spinBox.setMaximum(10000)
         self.spinBox.setValue(100)
@@ -573,7 +563,7 @@ class Ui_MainWindow(object):
 
         self.spinBox_2 = QSpinBox(self.results_frame)
         self.spinBox_2.setObjectName(u"spinBox_2")
-        self.spinBox_2.setMinimumSize(QSize(60, 26))
+        self.spinBox_2.setMinimumSize(QSize(60, 0))
         self.spinBox_2.setMinimum(1)
         self.spinBox_2.setMaximum(20)
         self.spinBox_2.setValue(4)
@@ -589,19 +579,36 @@ class Ui_MainWindow(object):
 
         self.button_start_search = QPushButton(self.results_frame)
         self.button_start_search.setObjectName(u"button_start_search")
-        self.button_start_search.setMinimumSize(QSize(0, 30))
+        self.button_start_search.setMinimumSize(QSize(0, 0))
         self.button_start_search.setFont(font3)
 
         self.verticalLayout_table_widget.addWidget(self.button_start_search)
 
         self.table_widget_results = QTableWidget(self.results_frame)
         self.table_widget_results.setObjectName(u"table_widget_results")
+        self.table_widget_results.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.table_widget_results.sizePolicy().hasHeightForWidth())
         self.table_widget_results.setSizePolicy(sizePolicy3)
         self.table_widget_results.setMinimumSize(QSize(0, 180))
         self.table_widget_results.verticalHeader().setCascadingSectionResizes(False)
 
         self.verticalLayout_table_widget.addWidget(self.table_widget_results)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.button_search_result_export_to_csv = QPushButton(self.results_frame)
+        self.button_search_result_export_to_csv.setObjectName(u"button_search_result_export_to_csv")
+        self.button_search_result_export_to_csv.setEnabled(True)
+
+        self.horizontalLayout_5.addWidget(self.button_search_result_export_to_csv)
+
+        self.button_search_result_clear_results = QPushButton(self.results_frame)
+        self.button_search_result_clear_results.setObjectName(u"button_search_result_clear_results")
+
+        self.horizontalLayout_5.addWidget(self.button_search_result_clear_results)
+
+
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout_5)
 
 
         self.verticalLayout_right.addWidget(self.results_frame)
@@ -667,6 +674,8 @@ class Ui_MainWindow(object):
         self.line_edit_regex.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter or generate regular expression pattern...", None))
         self.button_add_regex_to_list_widget.setText(QCoreApplication.translate("MainWindow", u"Add Pattern to Search List", None))
         self.section_label_3.setText(QCoreApplication.translate("MainWindow", u"Active Search Patterns", None))
+        self.button_regex_pattern_remove_selected.setText(QCoreApplication.translate("MainWindow", u"Remove Selected", None))
+        self.button_regex_pattern_remove_all.setText(QCoreApplication.translate("MainWindow", u"Remove All", None))
         self.section_label_program_output.setText(QCoreApplication.translate("MainWindow", u"System Output", None))
         self.label_font_size_program_output.setText(QCoreApplication.translate("MainWindow", u"Font Size:", None))
         self.combobox_font_size_program_output.setItemText(0, QCoreApplication.translate("MainWindow", u"12pt", None))
@@ -676,11 +685,12 @@ class Ui_MainWindow(object):
         self.combobox_font_size_program_output.setItemText(4, QCoreApplication.translate("MainWindow", u"16pt", None))
 
         self.program_output.setPlaceholderText(QCoreApplication.translate("MainWindow", u"System output and status messages will appear here...", None))
+        self.progress_bar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.section_label_4.setText(QCoreApplication.translate("MainWindow", u"Search Results & Configuration", None))
-        self.label_headers.setText(QCoreApplication.translate("MainWindow", u"Table Headers:", None))
-        self.line_edit_headers.setPlaceholderText(QCoreApplication.translate("MainWindow", u"File, Line, Match, Timestamp (comma-separated headers)", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Columns:", None))
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
+        self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to CSV", None))
+        self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
     # retranslateUi
 

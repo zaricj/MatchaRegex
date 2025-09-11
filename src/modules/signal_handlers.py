@@ -4,7 +4,8 @@
 # File: modules/signal_handlers.py
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
-from modules.helpers import SearcherThread, HelperMethods
+from modules.helpers import HelperMethods
+from modules.regex_processor import RegexProcessorThread
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 import pandas as pd
 
@@ -13,6 +14,10 @@ class SignalHandlerMixin:
     ui: Ui_MainWindow
     
     # ============= SLOT METHODS =============
+    
+    @Slot(int)
+    def handle_progress_bar(self, value: int):
+        self.ui.progress_bar.setValue(value)
     
     @Slot(str, str)
     def handle_info_message(self, title: str, message: str):
@@ -29,15 +34,44 @@ class SignalHandlerMixin:
     @Slot(str)
     def handle_program_output(self, text: str):
         self.ui.program_output.append(text)
-        
-    @Slot(object, bool)
-    def handle_widget_enable(self, widget, enable: bool):
-        widget.setEnabled(enable)
-        
-    @Slot(pd.DataFrame)
-    def handle_search_finished(self, results: pd.DataFrame):
-        self.ui.statusbar.showMessage("Search finished.", 5000)
-        self._populate_results_table(results)
+
+    @Slot(list)
+    def handle_finished(self, results: list):
+        self.ui.program_output.append("Received finished signal")
+        try:
+            if results:
+                self.ui.program_output.append(f"Creating DataFrame from {len(results)} matches")
+                # Normalize results to ensure consistent keys
+                all_keys = set()
+                for result in results:
+                    all_keys.update(result.keys())
+                for result in results:
+                    for key in all_keys:
+                        if key not in result:
+                            result[key] = ""
+                # Create DataFrame in main thread
+                results_df = pd.DataFrame(results, dtype=str)
+                self.ui.program_output.append(f"DataFrame created with {len(results_df)} rows, columns: {list(results_df.columns)}")
+                self.ui.table_widget_results.clear()
+                self._populate_results_table(results_df)
+                self.ui.program_output.append(f"Table updated with {len(results_df)} matches")
+            else:
+                self.ui.program_output.append("Search completed, but no matches were found.")
+                QMessageBox.information(self, "Search Complete", "No matches found.")
+        except Exception as e:
+            self.ui.program_output.append(f"Error in handle_finished: {str(e)}")
+            QMessageBox.critical(self, "Table Error", f"Failed to update results table: {str(e)}")
+
+        self._enable_start_button(True)
+        self.handle_progress_bar(0)
+    
+    def _enable_start_button(self, enable: bool):
+        """Helper method to enable or disable the search button."""
+        self.ui.button_start_search.setEnabled(enable)
+        if enable:
+            self.ui.statusbar.showMessage("Ready to search.", 5000)
+        else:
+            self.ui.statusbar.showMessage("Searching...", 0)
     
     @Slot(str, int)
     def handle_statusbar_message(self, message: str, timeout: int = 5000):
@@ -45,21 +79,23 @@ class SignalHandlerMixin:
     
     # ============= CONNECTION METHODS =============
     
-    def connect_searcher_thread_signals(self, worker: SearcherThread):
-        """Connect all signals from SearcherThread to appropriate slots"""
-        worker.signals.message_information.connect(self.handle_info_message)
-        worker.signals.message_warning.connect(self.handle_warning_message)
-        worker.signals.message_critical.connect(self.handle_critical_message)
-        worker.signals.program_output_text.connect(self.handle_program_output)
-        worker.signals.widget_enable.connect(self.handle_widget_enable)
-        worker.signals.finished.connect(self.handle_search_finished)
-        worker.signals.statusbar_show_message.connect(self.handle_statusbar_message)
+    def connect_regex_processor_signals(self, regex_processor: RegexProcessorThread):
+        """Connect the signals from the regex processor thread to the main window's slots."""
+        regex_processor.signals.progress_update.connect(self.handle_progress_bar)
+        regex_processor.signals.program_output_text.connect(self.handle_program_output)
+        regex_processor.signals.statusbar_show_message.connect(self.handle_statusbar_message)
+        regex_processor.signals.message_information.connect(self.handle_info_message)
+        regex_processor.signals.message_warning.connect(self.handle_warning_message)
+        regex_processor.signals.message_critical.connect(self.handle_critical_message)
+        regex_processor.signals.finished.connect(self.handle_finished)
+        self.ui.program_output.append("Connected regex processor signals")
         
     def connect_helper_method_signals(self, helper: HelperMethods):
         """Connect all signals from HelperMethods to appropriate slots"""
         helper.signals.program_output_text.connect(self.handle_program_output)
         helper.signals.statusbar_show_message.connect(self.handle_statusbar_message)
-    
+        
+        
     def connect_ui_events(self):
         """Connect all UI element events to their handlers"""
         
@@ -83,6 +119,14 @@ class SignalHandlerMixin:
         self.ui.button_add_regex_to_list_widget.clicked.connect(self.add_regexToListWidget)
         # Search button click event
         self.ui.button_start_search.clicked.connect(self.on_startSearch)
+        # Removed selected click event (for regex patterns added to QListWidget)
+        self.ui.button_regex_pattern_remove_selected.clicked.connect(self.on_removeSelectedRegexPattern)
+        # Removed all click event (for regex patterns added to QListWidget)
+        self.ui.button_regex_pattern_remove_all.clicked.connect(self.on_removeAllRegexPattern)
+        # Export to CSV click event
+        self.ui.button_search_result_export_to_csv.clicked.connect(self.on_exportToCsv)
+        # Clear results click event
+        self.ui.button_search_result_clear_results.clicked.connect(self.on_clearResults)
     
     # ============= HELPER METHODS =============
     
@@ -99,4 +143,5 @@ class SignalHandlerMixin:
         
         for row, record in results.iterrows():
             for col, (key, value) in enumerate(record.items()):
-                self.ui.table_widget_results.setItem(row, col, QTableWidgetItem(str(value)))
+                item = QTableWidgetItem(str(value))
+                self.ui.table_widget_results.setItem(row, col, item)

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
+    QFileDialog
 )
 from PySide6.QtCore import (
     Slot,
@@ -14,6 +15,7 @@ from PySide6.QtCore import (
 )
 import sys
 from pathlib import Path
+import pandas as pd
 
 # from resources.interface.qrc import LogSearcher_resource_rc
 
@@ -36,7 +38,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
     def setup_application(self):
         """Initialize the application components"""
-        self.connect_ui_events()  # From mixin
+        self.connect_ui_events()  # From mixin (src/modules/signal_handlers.py)
         
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -44,6 +46,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
         # Optional: Set maximum thread count (default is system dependent)
         max_threads = self.thread_pool.maxThreadCount()
+        print(f"Max threads: {max_threads}")
         self.thread_pool.setMaxThreadCount(max_threads)
         
     # === App Methods & Logic === #
@@ -67,6 +70,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         try:
             sample = self.ui.line_edit_string_to_regex.text()
             regex = self.regex_builder.build_smart_regex(sample)
+            # regex = self.regex_builder.build_smart_regex(sample, group_name="ip", use_groups=True)
             if regex:
                 # Add generated regex to the regex input field
                 regex_input = self.ui.line_edit_regex
@@ -85,26 +89,33 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def add_regexToListWidget(self): # Handler for "Add Regex to List" button
         try:
             regex_input = self.ui.line_edit_regex.text().strip()
-            text_for_conversion = self.ui.line_edit_string_to_regex.text().strip()
             if regex_input:
-                # Add text that is was used for conversion as regex to the header input field
-                if self.ui.line_edit_headers.text().strip() == "" and text_for_conversion:
-                    self.ui.line_edit_headers.setText(text_for_conversion)
-                    self.ui.statusbar.showMessage(f"Added header: {text_for_conversion}", 5000)
-                else:
-                    self.ui.line_edit_headers.setText(self.ui.line_edit_headers.text().strip() + "," + text_for_conversion)
-                # Split by comma and add each regex to the list widget
-                regex_list = [r.strip() for r in regex_input.split(",") if r.strip()]
-                for regex in regex_list:
-                    self.ui.list_widget_regex.addItem(regex)
-                    self.regex_patterns.append(regex)
+                import re
+                group_names = re.findall(r'\(\?P<(\w+)>', regex_input)
+                self.ui.list_widget_regex.addItem(regex_input)
+                self.regex_patterns.append(regex_input)
                 self.ui.line_edit_regex.clear()
-                self.ui.statusbar.showMessage(f"Added {len(regex_list)} regex pattern(s) to the list.", 5000)
+                self.ui.statusbar.showMessage(f"Added {regex_input} regex pattern to the list.", 5000)
             else:
                 QMessageBox.warning(self, "Input Error", "Please enter at least one regex pattern.")
         except Exception as ex:
             QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
+    
+    @Slot()
+    def on_removeSelectedRegexPattern(self): # Handler for "Remove Selected" button
+        """Remove selected pattern from the list."""
+        current_row = self.ui.list_widget_regex.currentRow()
+        if current_row >= 0:
+            self.ui.statusbar.showMessage(f"Removed {self.ui.list_widget_regex.currentItem().text()} from list!", 5000)
+            self.ui.list_widget_regex.takeItem(current_row)
+            del self.regex_patterns[current_row]
             
+    @Slot()
+    def on_removeAllRegexPattern(self): # Handler for "Remove All" button
+        """Clear all patterns from the list."""
+        self.ui.list_widget_regex.clear()
+        self.regex_patterns.clear()
+        self.ui.statusbar.showMessage("Removed all regex patterns from list!", 5000)
         
     @Slot()
     def on_startSearch(self): # Handler for "Start Search" button
@@ -116,7 +127,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             folder_path = Path(self.ui.line_edit_files_folder.text().strip())
             file_patterns = [p.strip() for p in self.ui.line_edit_file_pattern.text().split(",") if p.strip()]
             regex_patterns = self.regex_patterns
-            headers = self.ui.line_edit_headers.text().strip().split(",") if self.ui.line_edit_headers.text().strip() else []
             
             if not folder_path.exists() or not folder_path.is_dir():
                 QMessageBox.warning(self, "Input Error", "Please specify a valid folder path.")
@@ -124,32 +134,47 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             if not regex_patterns:
                 QMessageBox.warning(self, "Input Error", "Please add at least one regex pattern.")
                 return
-            if not headers:
-                QMessageBox.warning(self, "Input Error", "Please specify at least one header.")
-                return
-            if len(headers) < len(regex_patterns):
-                QMessageBox.warning(self, "Input Error", "Number of headers should be at least equal to the number of regex patterns.")
-                return
+
+            # Disable the button to prevent multiple searches at once
+            #self.ui.button_start_search.setEnabled(False)
             
-            from modules.helpers import SearcherThread
-            self.ui.statusbar.showMessage("Search started...", 5000)
+            from modules.regex_processor import RegexProcessorThread
             
             # Create and start the search thread
-            search_thread = SearcherThread(
+            regex_processor_thread = RegexProcessorThread(
                 operation='search_files', 
-                main_window=self,
                 regex_patterns=regex_patterns,
-                headers=headers,
                 folder_path=folder_path,
                 file_patterns=file_patterns)
             
-            self._connect_searcher_thread_signals(search_thread) # Connected signals and slots
-            
-            self.thread_pool.start(search_thread)
+            self.ui.program_output.append("Starting thread")
+            self.connect_regex_processor_signals(regex_processor_thread) # Connected signals and slots
+            self.thread_pool.start(regex_processor_thread)
             
         except Exception as ex:
             QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
+    
+    def on_clearResults(self): # Handler for clear table widget
+        if self.ui.table_widget_results.columnCount() > 0:
+            self.ui.table_widget_results.clear()
+            self.results_df = pd.DataFrame() # Clear the DataFrame as well
+            self.ui.statusbar.showMessage("Cleared results table!", 5000)
             
+    def on_exportToCsv(self):
+        if self.results_df.empty:
+            QMessageBox.information(self, "Export Failed", "No results to export.")
+            return
+
+        # Prompt user for a save location
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export Results", "Regex_Search_Result", "CSV Files (*.csv)")
+        
+        if file_path:
+            try:
+                self.results_df.to_csv(file_path, index=False)
+                QMessageBox.information(self, "Export Successful", f"Results exported to:\n{file_path}")
+                self.ui.statusbar.showMessage("Results exported to CSV.", 5000)
+            except Exception as e:
+                QMessageBox.critical(self, "Export Error", f"Failed to export results: {e}")
             
 if __name__ == "__main__":
     # Initialize the application

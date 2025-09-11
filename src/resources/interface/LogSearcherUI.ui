@@ -15,6 +15,7 @@
     <family>Segoe UI</family>
     <pointsize>9</pointsize>
     <bold>false</bold>
+    <kerning>true</kerning>
    </font>
   </property>
   <property name="windowTitle">
@@ -39,7 +40,7 @@
     QLineEdit {
         border: 1px solid #404040;
         border-radius: 4px;
-        padding: 6px 8px;
+        padding: 4px 10px;;
         background-color: #2d2d30;
         color: #ffffff;
         font-size: 9pt;
@@ -48,42 +49,6 @@
     QLineEdit:focus {
         border-color: #0078d4;
         outline: none;
-    }
-    
-    QPushButton {
-        background-color: #0078d4;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 6px 12px;
-        font-weight: 600;
-        font-size: 9pt;
-    }
-    
-    QPushButton:hover {
-        background-color: #106ebe;
-    }
-    
-    QPushButton:pressed {
-        background-color: #005a9e;
-    }
-    
-    QPushButton#button_start_search {
-        background-color: #107c10;
-        font-size: 9pt;
-        padding: 8px 16px;
-    }
-    
-    QPushButton#button_start_search:hover {
-        background-color: #0e6e0e;
-    }
-    
-    QPushButton#button_string_to_regex {
-        background-color: #8a2be2;
-    }
-    
-    QPushButton#button_string_to_regex:hover {
-        background-color: #7b2bc7;
     }
     
     QListWidget {
@@ -147,6 +112,37 @@
     QSpinBox::up-button:hover, QSpinBox::down-button:hover {
         background-color: #505050;
     }
+
+/* Progress Bar */
+QProgressBar {
+    border: none;
+    border-radius: 6px;
+    text-align: center;
+    height: 12px;
+    background: #3a3a3a;
+    color: #f3f3f3;
+}
+QProgressBar::chunk {
+    border-radius: 6px;
+    background-color: #0078D7;
+}
+
+/* Checkboxes */
+QCheckBox {
+    spacing: 6px;
+    color: #f3f3f3;
+}
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #888;
+    border-radius: 3px;
+    background: #2b2b2b;
+}
+QCheckBox::indicator:checked {
+    background-color: #0078D7;
+    image: url(:/icons/checkmark.png); /* optional checkmark icon */
+}
    </string>
   </property>
   <property name="animated">
@@ -267,6 +263,12 @@
              </property>
              <item>
               <widget class="QLabel" name="label_files_folder">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>90</width>
@@ -290,7 +292,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="placeholderText">
@@ -312,7 +314,7 @@
                <property name="minimumSize">
                 <size>
                  <width>100</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="font">
@@ -352,7 +354,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="placeholderText">
@@ -422,7 +424,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="placeholderText">
@@ -444,7 +446,7 @@
                <property name="minimumSize">
                 <size>
                  <width>100</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="font">
@@ -491,7 +493,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="text">
@@ -512,7 +514,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>28</height>
+               <height>0</height>
               </size>
              </property>
              <property name="font">
@@ -523,14 +525,7 @@
               </font>
              </property>
              <property name="styleSheet">
-              <string notr="true">
-             QPushButton {
-                 background-color: #6f42c1;
-             }
-             QPushButton:hover {
-                 background-color: #5a36a0;
-             }
-            </string>
+              <string notr="true"/>
              </property>
              <property name="text">
               <string>Add Pattern to Search List</string>
@@ -649,6 +644,24 @@
               <enum>QListView::ResizeMode::Fixed</enum>
              </property>
             </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QPushButton" name="button_regex_pattern_remove_selected">
+               <property name="text">
+                <string>Remove Selected</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_regex_pattern_remove_all">
+               <property name="text">
+                <string>Remove All</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -805,6 +818,19 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QProgressBar" name="progress_bar">
+             <property name="value">
+              <number>0</number>
+             </property>
+             <property name="textVisible">
+              <bool>true</bool>
+             </property>
+             <property name="format">
+              <string>%p%</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -862,55 +888,6 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <property name="spacing">
-              <number>8</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>4</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="label_headers">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
-                 <fontweight>DemiBold</fontweight>
-                </font>
-               </property>
-               <property name="text">
-                <string>Table Headers:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="line_edit_headers">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="placeholderText">
-                <string>File, Line, Match, Timestamp (comma-separated headers)</string>
-               </property>
-               <property name="clearButtonEnabled">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_table_settings">
              <property name="spacing">
               <number>12</number>
@@ -940,7 +917,7 @@
                <property name="minimumSize">
                 <size>
                  <width>60</width>
-                 <height>26</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="minimum">
@@ -979,7 +956,7 @@
                <property name="minimumSize">
                 <size>
                  <width>60</width>
-                 <height>26</height>
+                 <height>0</height>
                 </size>
                </property>
                <property name="minimum">
@@ -1013,7 +990,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>30</height>
+               <height>0</height>
               </size>
              </property>
              <property name="font">
@@ -1030,6 +1007,9 @@
            </item>
            <item>
             <widget class="QTableWidget" name="table_widget_results">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -1046,6 +1026,27 @@
               <bool>false</bool>
              </attribute>
             </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QPushButton" name="button_search_result_export_to_csv">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Export to CSV</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_search_result_clear_results">
+               <property name="text">
+                <string>Clear Results</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
