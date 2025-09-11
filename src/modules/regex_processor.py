@@ -25,18 +25,16 @@ class RegexProcessorThread(QRunnable):
 
     @Slot()
     def run(self):
-        self.signals.program_output_text.emit("Thread started")
+        results = []
         try:
             if self.operation == 'search_files':
-                self.search_files()
+                results = self.search_files()
             else:
                 raise ValueError(f"Unknown operation: {self.operation}")
         except Exception as e:
             self.signals.message_critical.emit("Search Error", f"Thread error: {str(e)}")
-            self.signals.finished.emit([])  # Emit empty list on error
         finally:
-            self.signals.program_output_text.emit("Emitting finished signal")
-            self.signals.program_output_text.emit("Thread finished")
+            self.signals.finished.emit(results)   # ✅ Always emit, even if empty
 
     def extract_named_groups_from_regex(self, regex_pattern: str) -> list[str]:
         group_pattern = r'\(\?P<(\w+)>'
@@ -45,37 +43,28 @@ class RegexProcessorThread(QRunnable):
     def process_files(self, files: list[Path], compiled_patterns: list, pattern_group_names: list) -> list[dict[str, Any]]:
         total = len(files)
         results = []
-        last_progress_update = 0
-        last_status_update = 0
 
         all_group_names = set()
         for group_names in pattern_group_names:
             all_group_names.update(group_names)
+            
         use_pattern_prefix = len(all_group_names) < sum(len(gn) for gn in pattern_group_names)
 
         for index, filepath in enumerate(files, start=1):
-            current_time = time.time()
-            if current_time - last_status_update >= 1.0:
-                self.signals.statusbar_show_message.emit(f"Processing file: {filepath.name}", 5000)
-                self.signals.program_output_text.emit(f"Searching file {filepath.name}")
-                last_status_update = current_time
-
+            self.signals.program_output_text.emit(f"Processing file: {filepath.name}")
+            
             try:
                 if not filepath.is_file() or not filepath.exists():
                     self.signals.program_output_text.emit(f"Skipping inaccessible file {filepath.name}")
                     continue
 
                 with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-                    self.signals.program_output_text.emit(f"Opened file {filepath.name}")
                     line_count = 0
                     for line_number, line in enumerate(f, start=1):
                         line_count += 1
-                        line = line.strip()[:5000]
+                        line = line.strip()
                         if not line:
                             continue
-
-                        if line_count % 1000 == 0:
-                            self.signals.program_output_text.emit(f"Processed {line_count} lines in {filepath.name}")
 
                         for pattern_idx, (compiled_regex, group_names) in enumerate(zip(compiled_patterns, pattern_group_names), 1):
                             try:
@@ -94,19 +83,15 @@ class RegexProcessorThread(QRunnable):
 
             except Exception as file_error:
                 self.signals.program_output_text.emit(f"File error in {filepath.name}: {str(file_error)}")
-                self.signals.message_warning.emit("File Processing Error", f"Error processing {filepath.name}: {str(file_error)}")
                 continue
 
-            current_time = time.time()
-            if current_time - last_progress_update >= 0.5:
-                progress = int((index / total) * 100)
-                self.signals.progress_update.emit(progress)
-                last_progress_update = current_time
+            progress = int((index / total) * 100)
+            self.signals.progress_update.emit(progress)
 
-        self.signals.program_output_text.emit(f"Processed {total} files, {line_count} lines in last file")
+        self.signals.program_output_text.emit(f"Processed {total} files in total!")
         return results
 
-    def search_files(self):
+    def search_files(self) -> list[dict[str, Any]]:
         if not self.folder_path or not self.folder_path.exists():
             raise ValueError("Invalid or non-existent folder path")
             
@@ -130,9 +115,9 @@ class RegexProcessorThread(QRunnable):
             self.signals.finished.emit([])
             return
             
-        self.signals.program_output_text.emit(f"Files to process: {', '.join([f.name for f in files])}")
         compiled_patterns = []
         pattern_group_names = []
+        
         for regex in self.regex_patterns:
             try:
                 compiled = re.compile(regex)
@@ -148,6 +133,4 @@ class RegexProcessorThread(QRunnable):
         results = self.process_files(files, compiled_patterns, pattern_group_names)
         self.signals.program_output_text.emit(f"File processing complete, {len(results)} matches found")
         
-        self.signals.program_output_text.emit(f"Results sample: {results[:5]}")
-        self.signals.finished.emit(results)
-        self.signals.program_output_text.emit("Search finished")
+        return results

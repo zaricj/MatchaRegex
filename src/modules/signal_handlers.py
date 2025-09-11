@@ -37,10 +37,8 @@ class SignalHandlerMixin:
 
     @Slot(list)
     def handle_finished(self, results: list):
-        self.ui.program_output.append("Received finished signal")
         try:
             if results:
-                self.ui.program_output.append(f"Creating DataFrame from {len(results)} matches")
                 # Normalize results to ensure consistent keys
                 all_keys = set()
                 for result in results:
@@ -51,10 +49,9 @@ class SignalHandlerMixin:
                             result[key] = ""
                 # Create DataFrame in main thread
                 results_df = pd.DataFrame(results, dtype=str)
-                self.ui.program_output.append(f"DataFrame created with {len(results_df)} rows, columns: {list(results_df.columns)}")
+                self.ui.program_output.append(f"DataFrame created with {len(results_df)} rows, columns:\n{list(results_df.columns)}")
                 self.ui.table_widget_results.clear()
                 self._populate_results_table(results_df)
-                self.ui.program_output.append(f"Table updated with {len(results_df)} matches")
             else:
                 self.ui.program_output.append("Search completed, but no matches were found.")
                 QMessageBox.information(self, "Search Complete", "No matches found.")
@@ -64,6 +61,10 @@ class SignalHandlerMixin:
 
         self._enable_start_button(True)
         self.handle_progress_bar(0)
+        
+        # Release worker reference
+        if hasattr(self, "_active_worker"):
+            self._active_worker = None
     
     def _enable_start_button(self, enable: bool):
         """Helper method to enable or disable the search button."""
@@ -88,7 +89,6 @@ class SignalHandlerMixin:
         regex_processor.signals.message_warning.connect(self.handle_warning_message)
         regex_processor.signals.message_critical.connect(self.handle_critical_message)
         regex_processor.signals.finished.connect(self.handle_finished)
-        self.ui.program_output.append("Connected regex processor signals")
         
     def connect_helper_method_signals(self, helper: HelperMethods):
         """Connect all signals from HelperMethods to appropriate slots"""

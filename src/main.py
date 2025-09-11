@@ -19,6 +19,10 @@ import pandas as pd
 
 # from resources.interface.qrc import LogSearcher_resource_rc
 
+def apply_stylesheet(app, qss_file_path):
+    with open(qss_file_path, "r") as file:
+        app.setStyleSheet(file.read())
+
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
         super().__init__()
@@ -30,6 +34,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         from modules.regex_builder import RegexBuilder
         self.helper = HelperMethods(main_window=self)
         self.regex_builder = RegexBuilder(main_window=self)
+        self._active_worker = None
         
         self.regex_patterns: list[str] = []
         
@@ -90,8 +95,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         try:
             regex_input = self.ui.line_edit_regex.text().strip()
             if regex_input:
-                import re
-                group_names = re.findall(r'\(\?P<(\w+)>', regex_input)
                 self.ui.list_widget_regex.addItem(regex_input)
                 self.regex_patterns.append(regex_input)
                 self.ui.line_edit_regex.clear()
@@ -136,7 +139,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 return
 
             # Disable the button to prevent multiple searches at once
-            #self.ui.button_start_search.setEnabled(False)
+            self.ui.button_start_search.setEnabled(False)
             
             from modules.regex_processor import RegexProcessorThread
             
@@ -146,6 +149,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 regex_patterns=regex_patterns,
                 folder_path=folder_path,
                 file_patterns=file_patterns)
+            
+            self._active_worker = regex_processor_thread
             
             self.ui.program_output.append("Starting thread")
             self.connect_regex_processor_signals(regex_processor_thread) # Connected signals and slots
@@ -179,6 +184,11 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 if __name__ == "__main__":
     # Initialize the application
     app = QApplication(sys.argv)
+    
+    cur_dir = Path.cwd()
+    theme_file = cur_dir / "src" / "resources" / "themes" / "dark_fluent.qss"
+    apply_stylesheet(app, theme_file)
+
 
     window = MainWindow()
     window.show()
