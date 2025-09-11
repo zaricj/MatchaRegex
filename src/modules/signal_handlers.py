@@ -124,7 +124,7 @@ class SignalHandlerMixin:
         # Removed all click event (for regex patterns added to QListWidget)
         self.ui.button_regex_pattern_remove_all.clicked.connect(self.on_removeAllRegexPattern)
         # Export to CSV click event
-        self.ui.button_search_result_export_to_csv.clicked.connect(self.on_exportToCsv)
+        self.ui.button_search_result_export_to_csv.clicked.connect(self.on_exportToExcel)
         # Clear results click event
         self.ui.button_search_result_clear_results.clicked.connect(self.on_clearResults)
     

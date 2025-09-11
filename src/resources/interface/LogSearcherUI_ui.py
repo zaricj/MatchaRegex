@@ -21,14 +21,13 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
     QProgressBar, QPushButton, QSizePolicy, QSpacerItem,
     QSpinBox, QStatusBar, QTableWidget, QTableWidgetItem,
     QTextEdit, QVBoxLayout, QWidget)
-
 from resources.interface.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1206, 1060)
+        MainWindow.resize(1206, 1036)
         font = QFont()
         font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
@@ -691,7 +690,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Columns:", None))
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
-        self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to CSV", None))
+        self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
     # retranslateUi
 

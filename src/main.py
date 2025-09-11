@@ -7,21 +7,21 @@ from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QFileDialog
+    QFileDialog,
 )
 from PySide6.QtCore import (
     Slot,
     QThreadPool,
+    QFile, 
+    QTextStream,
+    QSettings,
+    QIODevice,
 )
 import sys
 from pathlib import Path
 import pandas as pd
 
 # from resources.interface.qrc import LogSearcher_resource_rc
-
-def apply_stylesheet(app, qss_file_path):
-    with open(qss_file_path, "r") as file:
-        app.setStyleSheet(file.read())
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
@@ -31,15 +31,34 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
+        # Setup settings
+        self.settings = QSettings("Jovan", "RegularFX")
+        
         from modules.regex_builder import RegexBuilder
         self.helper = HelperMethods(main_window=self)
         self.regex_builder = RegexBuilder(main_window=self)
         self._active_worker = None
-        
         self.regex_patterns: list[str] = []
         
+        # Current working dir
+        cwd = Path(__file__).parent
+        
+        # Theme files dark & light
+        self.dark_theme_file = cwd / "resources" / "themes" / "dark.qss"
+        self.light_theme_file = cwd / "resources" / "themes" / "light.qss"
+        
+        # Current app theme, saved to QSettings
+        self.current_app_theme = self.settings.value("Application_Theme", "dark.qss")
+        theme_path = self.dark_theme_file if self.current_app_theme == "dark.qss" else self.light_theme_file
+        
+        # Restore previous window geometry
+        geometry = self.settings.value("Window_Geometry")
+        if geometry:
+            self.restoreGeometry(geometry)
+
         self.init_thread_pool()
         self.setup_application()
+        self._initialize_theme(theme_path)
         
     def setup_application(self):
         """Initialize the application components"""
@@ -54,9 +73,35 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         print(f"Max threads: {max_threads}")
         self.thread_pool.setMaxThreadCount(max_threads)
         
+    def closeEvent(self, event):
+        self.settings.setValue("Application_Theme", self.current_app_theme)
+        self.settings.setValue("Window_Geometry", self.saveGeometry())
+        super().closeEvent(event)
+        
+    def _initialize_theme(self, theme_file: str):
+        """Initialized UI theme files (.qss)
+
+        Args:
+            theme_file (str): File path to the .qss theme file
+        """
+        try:
+            file = QFile(theme_file)
+            if not file.open(
+                QIODevice.OpenModeFlag.ReadOnly | QIODevice.OpenModeFlag.Text
+            ):
+                return
+            else:
+                stream = QTextStream(file)
+                stylesheet = stream.readAll()
+                self.setStyleSheet(stylesheet)
+            file.close()
+        except Exception as ex:
+            QMessageBox.critical(
+                self, "Theme load error", f"Failed to load theme: {str(ex)}"
+            )
+        
     # === App Methods & Logic === #
     
-
     @Slot()
     def on_filesFolderTextChanged(self):
         input_field = self.ui.line_edit_files_folder
@@ -161,34 +206,49 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     
     def on_clearResults(self): # Handler for clear table widget
         if self.ui.table_widget_results.columnCount() > 0:
-            self.ui.table_widget_results.clear()
-            self.results_df = pd.DataFrame() # Clear the DataFrame as well
+            self.ui.table_widget_results.clearContents()
             self.ui.statusbar.showMessage("Cleared results table!", 5000)
             
-    def on_exportToCsv(self):
-        if self.results_df.empty:
+    def on_exportToExcel(self):
+        """Export table_widget_results to Excel file."""
+        table = self.ui.table_widget_results
+        row_count = table.rowCount()
+        col_count = table.columnCount()
+    
+        if row_count == 0 or col_count == 0:
             QMessageBox.information(self, "Export Failed", "No results to export.")
             return
-
+    
+        # Get headers
+        headers = [table.horizontalHeaderItem(col).text() for col in range(col_count)]
+    
+        # Get data
+        data = []
+        for row in range(row_count):
+            row_data = []
+            for col in range(col_count):
+                item = table.item(row, col)
+                row_data.append(item.text() if item else "")
+            data.append(row_data)
+    
+        # Create DataFrame
+        df = pd.DataFrame(data, columns=headers)
+    
         # Prompt user for a save location
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export Results", "Regex_Search_Result", "CSV Files (*.csv)")
-        
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export Results", "Regex_Search_Result", "Excel Files (*.xlsx)")
         if file_path:
             try:
-                self.results_df.to_csv(file_path, index=False)
+                if not file_path.lower().endswith('.xlsx'):
+                    file_path += '.xlsx'
+                df.to_excel(file_path, index=False)
                 QMessageBox.information(self, "Export Successful", f"Results exported to:\n{file_path}")
-                self.ui.statusbar.showMessage("Results exported to CSV.", 5000)
+                self.ui.statusbar.showMessage("Results exported to Excel.", 5000)
             except Exception as e:
                 QMessageBox.critical(self, "Export Error", f"Failed to export results: {e}")
             
 if __name__ == "__main__":
     # Initialize the application
     app = QApplication(sys.argv)
-    
-    cur_dir = Path.cwd()
-    theme_file = cur_dir / "src" / "resources" / "themes" / "dark_fluent.qss"
-    apply_stylesheet(app, theme_file)
-
 
     window = MainWindow()
     window.show()

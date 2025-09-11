@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1206</width>
-    <height>1060</height>
+    <height>1036</height>
    </rect>
   </property>
   <property name="font">
@@ -1035,7 +1035,7 @@ QCheckBox::indicator:checked {
                 <bool>true</bool>
                </property>
                <property name="text">
-                <string>Export to CSV</string>
+                <string>Export to Excel</string>
                </property>
               </widget>
              </item>
