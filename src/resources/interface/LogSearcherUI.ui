@@ -277,7 +277,7 @@ QCheckBox::indicator:checked {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -319,7 +319,7 @@ QCheckBox::indicator:checked {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>100</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -346,7 +346,7 @@ QCheckBox::indicator:checked {
               <widget class="QLabel" name="label_file_pattern">
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>92</width>
                  <height>0</height>
                 </size>
                </property>
@@ -451,7 +451,7 @@ QCheckBox::indicator:checked {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>100</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
