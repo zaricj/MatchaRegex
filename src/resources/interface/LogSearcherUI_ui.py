@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
     QProgressBar, QPushButton, QSizePolicy, QSpacerItem,
     QSpinBox, QStatusBar, QTableWidget, QTableWidgetItem,
     QTextEdit, QVBoxLayout, QWidget)
-
 from resources.interface.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
@@ -31,101 +30,109 @@ class Ui_MainWindow(object):
         MainWindow.resize(1206, 1036)
         font = QFont()
         font.setFamilies([u"Segoe UI"])
-        font.setPointSize(9)
+        font.setPointSize(10)
         font.setBold(False)
         font.setKerning(True)
         MainWindow.setFont(font)
         icon = QIcon()
         icon.addFile(u":/images/clean-emissions-svgrepo-com.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
-        MainWindow.setStyleSheet(u"\n"
-"    QMainWindow {\n"
-"        background-color: #1e1e1e;\n"
-"        color: #ffffff;\n"
-"    }\n"
-"    \n"
-"    QLabel {\n"
-"        color: #ffffff;\n"
-"        font-weight: 600;\n"
-"    }\n"
-"    \n"
-"    QLineEdit {\n"
-"        border: 1px solid #404040;\n"
-"        border-radius: 4px;\n"
-"        padding: 4px 10px;;\n"
-"        background-color: #2d2d30;\n"
-"        color: #ffffff;\n"
-"        font-size: 9pt;\n"
-"    }\n"
-"    \n"
-"    QLineEdit:focus {\n"
-"        border-color: #0078d4;\n"
-"        outline: none;\n"
-"    }\n"
-"    \n"
-"    QListWidget {\n"
-"        border: 1px solid #404040;\n"
-"        border-radius: 4px;\n"
-"        background-color: #2d2d30;\n"
-"        color: #ffffff;\n"
-"        alternate-background-color: #323233;\n"
-"        selection-background-color: #0078d4;\n"
-"    }\n"
-"    \n"
-"    QTableWidget {\n"
-"        border: 1px solid #404040;\n"
-"        border-radius: 4px;\n"
-"        background-color: #2d2d30;\n"
-"        color: #ffffff;\n"
-"        alternate-background-color: "
-                        "#323233;\n"
-"        gridline-color: #404040;\n"
-"    }\n"
-"    \n"
-"    QTableWidget::item {\n"
-"        padding: 4px;\n"
-"    }\n"
-"    \n"
-"    QTableWidget QHeaderView::section {\n"
-"        background-color: #404040;\n"
-"        color: #ffffff;\n"
-"        padding: 4px;\n"
-"        border: 1px solid #505050;\n"
-"    }\n"
-"    \n"
-"    QTextEdit {\n"
-"        border: 1px solid #404040;\n"
-"        border-radius: 4px;\n"
-"        background-color: #0c0c0c;\n"
-"        color: #ffffff;\n"
-"        font-family: 'Consolas', 'Monaco', monospace;\n"
-"        font-size: 8pt;\n"
-"        padding: 6px;\n"
-"    }\n"
-"    \n"
-"    QSpinBox {\n"
-"        border: 1px solid #404040;\n"
-"        border-radius: 4px;\n"
-"        padding: 4px;\n"
-"        background-color: #2d2d30;\n"
-"        color: #ffffff;\n"
-"        min-width: 50px;\n"
-"    }\n"
-"    \n"
-"    QSpinBox:focus {\n"
-"        border-color: #0078d4;\n"
-"    }\n"
-"    \n"
-"    QSpinBox::up-button, QSpinBox::down-button {\n"
-"        background-color: #404040;\n"
-""
-                        "        border: none;\n"
-"        width: 16px;\n"
-"    }\n"
-"    \n"
-"    QSpinBox::up-button:hover, QSpinBox::down-button:hover {\n"
-"        background-color: #505050;\n"
-"    }\n"
+        MainWindow.setStyleSheet(u"/* Main window and background */\n"
+"QWidget {\n"
+"    background-color: #2D2D30;\n"
+"    color: #F0F0F0;\n"
+"    font-family: 'Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;\n"
+"    font-size: 10pt;\n"
+"}\n"
+"\n"
+"/* Push Buttons */\n"
+"QPushButton {\n"
+"    background-color: #3E3E42;\n"
+"    border: 1px solid #5C5C60;\n"
+"    color: #F0F0F0;\n"
+"    padding: 4px 8px; /* Reduced padding */\n"
+"    border-radius: 4px;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #4A4A4F;\n"
+"    border: 1px solid #6D6D72;\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    background-color: #55555A;\n"
+"}\n"
+"\n"
+"QPushButton:disabled {\n"
+"    background-color: #3E3E42;\n"
+"    border: 1px solid #5C5C60;\n"
+"    color: #999999;\n"
+"}\n"
+"\n"
+"/* Line Edits (text input fields) */\n"
+"QLineEdit {\n"
+"    background-color: #252526;\n"
+"    border: 1px solid #5C5C60;\n"
+"    padding: 3px; /* Reduced padding */\n"
+"    border-radius: 4px;\n"
+"    selection-background-color: #0078D7;\n"
+"    selection-color"
+                        ": #FFFFFF;\n"
+"}\n"
+"\n"
+"QLineEdit:focus {\n"
+"    border: 1px solid #0078D7; /* Accent color on focus */\n"
+"}\n"
+"\n"
+"QTextEdit#program_output {\n"
+"    background-color: #0c0c0c;\n"
+"    color: #ffffff;\n"
+"}\n"
+"\n"
+"/* Checkboxes and Radio Buttons */\n"
+"QCheckBox, QRadioButton {\n"
+"    color: #F0F0F0;\n"
+"}\n"
+"\n"
+"QCheckBox::indicator, QRadioButton::indicator {\n"
+"    background-color: #3E3E42;\n"
+"    border: 1px solid #5C5C60;\n"
+"    width: 14px;\n"
+"    height: 14px;\n"
+"}\n"
+"\n"
+"QCheckBox::indicator:checked {\n"
+"    background-color: #0078D7;\n"
+"    border: 1px solid #0078D7;\n"
+"    image: url(:/icons/checkmark.svg); /* Placeholder, replace with a path to a checkmark icon */\n"
+"}\n"
+"\n"
+"QRadioButton::indicator:checked {\n"
+"    background-color: #0078D7;\n"
+"    border: 1px solid #0078D7;\n"
+"}\n"
+"\n"
+"/* Sliders */\n"
+"QSlider::groove:horizontal {\n"
+"    border: 1px solid #5C5C60;\n"
+"    height: 6px;\n"
+"    background: #3E3E42;\n"
+"    border-radius: 3px;\n"
+"}\n"
+"\n"
+"QSlider::h"
+                        "andle:horizontal {\n"
+"    background: #F0F0F0;\n"
+"    border: 1px solid #5C5C60;\n"
+"    width: 16px;\n"
+"    margin: -5px 0;\n"
+"    border-radius: 8px;\n"
+"}\n"
+"\n"
+"QSlider::sub-page:horizontal {\n"
+"    background: #0078D7;\n"
+"    border-radius: 3px;\n"
+"}\n"
 "\n"
 "/* Progress Bar */\n"
 "QProgressBar {\n"
@@ -141,23 +148,76 @@ class Ui_MainWindow(object):
 "    background-color: #0078D7;\n"
 "}\n"
 "\n"
-"/* Checkboxes */\n"
-"QCheckBox {\n"
-"    spacing: 6px;\n"
-"    color: #f3f3f3;\n"
+"/* Scroll Bars */\n"
+"QScrollBar:vertical, QScrollBar:horizontal {\n"
+"    border: none;\n"
+"    background: #252526;\n"
+"    width: 10px;\n"
+"    margin: 0px 0px 0px 0px;\n"
 "}\n"
-"QCheckBox::indicator {\n"
-"    width: 14px;\n"
-"    height: 14px;\n"
-"    border: 1px solid #888;\n"
-"    border-radius: 3px;\n"
-"    background: #2b2b2b;\n"
+"\n"
+"QScrollBar::handle:vertical {\n"
+"    background: #5C5C60;\n"
+"    min-height: 20px;\n"
+"    border-radius: 5px;\n"
 "}\n"
-"QCheckBox::indicator:checked {\n"
-"    background-color: #0078D7;\n"
-"    image: url(:/icons/checkmark.png); /* optional checkmark icon */\n"
+"\n"
+"QScrollBar::handle:horizontal {\n"
+"    background: #5C5C60;\n"
+"    min-width: 20px;\n"
+"    border-radius: 5px;\n"
 "}\n"
-"   ")
+"\n"
+"QScrol"
+                        "lBar::add-line:vertical, QScrollBar::sub-line:vertical,\n"
+"QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {\n"
+"    border: none;\n"
+"    background: #252526;\n"
+"}\n"
+"\n"
+"/* Tabs */\n"
+"QTabBar::tab {\n"
+"    background-color: #2D2D30;\n"
+"    color: #F0F0F0;\n"
+"    padding: 8px 16px;\n"
+"    border: none;\n"
+"    border-bottom: 2px solid transparent;\n"
+"}\n"
+"\n"
+"QTabBar::tab:selected {\n"
+"    background-color: #3E3E42;\n"
+"    border-bottom: 2px solid #0078D7;\n"
+"}\n"
+"\n"
+"QTabWidget::pane {\n"
+"    border: 1px solid #5C5C60;\n"
+"}\n"
+"\n"
+"/* List and Tree Views */\n"
+"QListView, QTreeView {\n"
+"    background-color: #252526;\n"
+"    border: 1px solid #5C5C60;\n"
+"    selection-background-color: #0078D7;\n"
+"    selection-color: #FFFFFF;\n"
+"}\n"
+"\n"
+"    QListWidget {\n"
+"        border: 1px solid #404040;\n"
+"        border-radius: 4px;\n"
+"        background-color: #2d2d30;\n"
+"        color: #ffffff;\n"
+"        alternate-background-color: #323233;\n"
+"        selection-back"
+                        "ground-color: #0078d4;\n"
+"    }\n"
+"\n"
+"/* QFrame */\n"
+"QFrame#output_frame {\n"
+"    background-color: #252526;\n"
+"    border: 1px solid #3e3e42;\n"
+"    border-radius: 6px;\n"
+"}\n"
+"")
         MainWindow.setAnimated(True)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -175,7 +235,7 @@ class Ui_MainWindow(object):
         self.title_label.setMinimumSize(QSize(0, 30))
         font1 = QFont()
         font1.setFamilies([u"Segoe UI"])
-        font1.setPointSize(12)
+        font1.setPointSize(10)
         font1.setWeight(QFont.DemiBold)
         self.title_label.setFont(font1)
         self.title_label.setAutoFillBackground(False)
@@ -209,11 +269,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_line_edits.setContentsMargins(12, 12, 12, 12)
         self.section_label_1 = QLabel(self.input_frame)
         self.section_label_1.setObjectName(u"section_label_1")
-        font2 = QFont()
-        font2.setFamilies([u"Segoe UI"])
-        font2.setPointSize(10)
-        font2.setWeight(QFont.DemiBold)
-        self.section_label_1.setFont(font2)
+        self.section_label_1.setFont(font1)
         self.section_label_1.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
 "             margin-bottom: 2px;\n"
@@ -231,12 +287,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_files_folder.sizePolicy().hasHeightForWidth())
         self.label_files_folder.setSizePolicy(sizePolicy)
-        self.label_files_folder.setMinimumSize(QSize(0, 0))
-        font3 = QFont()
-        font3.setFamilies([u"Segoe UI"])
-        font3.setPointSize(9)
-        font3.setWeight(QFont.DemiBold)
-        self.label_files_folder.setFont(font3)
+        self.label_files_folder.setMinimumSize(QSize(90, 0))
+        self.label_files_folder.setFont(font1)
 
         self.horizontalLayout_01.addWidget(self.label_files_folder)
 
@@ -255,7 +307,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.button_browse_folder.sizePolicy().hasHeightForWidth())
         self.button_browse_folder.setSizePolicy(sizePolicy1)
         self.button_browse_folder.setMinimumSize(QSize(0, 0))
-        self.button_browse_folder.setFont(font3)
+        self.button_browse_folder.setFont(font1)
         icon1 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
         self.button_browse_folder.setIcon(icon1)
 
@@ -284,7 +336,7 @@ class Ui_MainWindow(object):
 
         self.section_label_2 = QLabel(self.input_frame)
         self.section_label_2.setObjectName(u"section_label_2")
-        self.section_label_2.setFont(font2)
+        self.section_label_2.setFont(font1)
         self.section_label_2.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
 "             margin-top: 6px;\n"
@@ -299,7 +351,7 @@ class Ui_MainWindow(object):
         self.label_string_to_regex = QLabel(self.input_frame)
         self.label_string_to_regex.setObjectName(u"label_string_to_regex")
         self.label_string_to_regex.setMinimumSize(QSize(90, 0))
-        self.label_string_to_regex.setFont(font3)
+        self.label_string_to_regex.setFont(font1)
 
         self.horizontalLayout_03.addWidget(self.label_string_to_regex)
 
@@ -320,7 +372,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.button_string_to_regex.sizePolicy().hasHeightForWidth())
         self.button_string_to_regex.setSizePolicy(sizePolicy1)
         self.button_string_to_regex.setMinimumSize(QSize(0, 0))
-        self.button_string_to_regex.setFont(font3)
+        self.button_string_to_regex.setFont(font1)
         icon2 = QIcon()
         icon2.addFile(u":/images/exchange-svgrepo-com.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.button_string_to_regex.setIcon(icon2)
@@ -336,7 +388,7 @@ class Ui_MainWindow(object):
         self.label_regex = QLabel(self.input_frame)
         self.label_regex.setObjectName(u"label_regex")
         self.label_regex.setMinimumSize(QSize(90, 0))
-        self.label_regex.setFont(font3)
+        self.label_regex.setFont(font1)
 
         self.horizontalLayout_02.addWidget(self.label_regex)
 
@@ -353,7 +405,7 @@ class Ui_MainWindow(object):
         self.button_add_regex_to_list_widget = QPushButton(self.input_frame)
         self.button_add_regex_to_list_widget.setObjectName(u"button_add_regex_to_list_widget")
         self.button_add_regex_to_list_widget.setMinimumSize(QSize(0, 0))
-        self.button_add_regex_to_list_widget.setFont(font3)
+        self.button_add_regex_to_list_widget.setFont(font1)
         self.button_add_regex_to_list_widget.setStyleSheet(u"")
         icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
         self.button_add_regex_to_list_widget.setIcon(icon3)
@@ -385,7 +437,7 @@ class Ui_MainWindow(object):
         self.section_label_3.setSizePolicy(sizePolicy)
         self.section_label_3.setMinimumSize(QSize(0, 0))
         self.section_label_3.setMaximumSize(QSize(16777215, 16777215))
-        self.section_label_3.setFont(font2)
+        self.section_label_3.setFont(font1)
         self.section_label_3.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
 "            ")
@@ -451,7 +503,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
         self.section_label_program_output.setSizePolicy(sizePolicy)
         self.section_label_program_output.setMaximumSize(QSize(16777215, 16777215))
-        self.section_label_program_output.setFont(font2)
+        self.section_label_program_output.setFont(font1)
         self.section_label_program_output.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
 "            ")
@@ -495,12 +547,12 @@ class Ui_MainWindow(object):
         self.program_output.setSizePolicy(sizePolicy3)
         self.program_output.setMinimumSize(QSize(0, 80))
         self.program_output.setMaximumSize(QSize(16777215, 16777215))
-        font4 = QFont()
-        font4.setFamilies([u"Consolas"])
-        font4.setPointSize(10)
-        font4.setBold(False)
-        font4.setItalic(False)
-        self.program_output.setFont(font4)
+        font2 = QFont()
+        font2.setFamilies([u"Consolas"])
+        font2.setPointSize(10)
+        font2.setBold(False)
+        font2.setItalic(False)
+        self.program_output.setFont(font2)
         self.program_output.setStyleSheet(u"font: 10pt \"Consolas\";")
         self.program_output.setReadOnly(True)
 
@@ -537,7 +589,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_table_widget.setContentsMargins(12, 12, 12, 12)
         self.section_label_4 = QLabel(self.results_frame)
         self.section_label_4.setObjectName(u"section_label_4")
-        self.section_label_4.setFont(font2)
+        self.section_label_4.setFont(font1)
         self.section_label_4.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
 "            ")
@@ -554,13 +606,13 @@ class Ui_MainWindow(object):
         sizePolicy6.setVerticalStretch(0)
         sizePolicy6.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
         self.label_3.setSizePolicy(sizePolicy6)
-        self.label_3.setFont(font3)
+        self.label_3.setFont(font1)
 
         self.horizontalLayout_table_settings.addWidget(self.label_3)
 
         self.spinBox = QSpinBox(self.results_frame)
         self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.setMinimumSize(QSize(60, 0))
+        self.spinBox.setMinimumSize(QSize(0, 0))
         self.spinBox.setMinimum(1)
         self.spinBox.setMaximum(10000)
         self.spinBox.setValue(100)
@@ -571,13 +623,13 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName(u"label_4")
         sizePolicy6.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
         self.label_4.setSizePolicy(sizePolicy6)
-        self.label_4.setFont(font3)
+        self.label_4.setFont(font1)
 
         self.horizontalLayout_table_settings.addWidget(self.label_4)
 
         self.spinBox_2 = QSpinBox(self.results_frame)
         self.spinBox_2.setObjectName(u"spinBox_2")
-        self.spinBox_2.setMinimumSize(QSize(60, 0))
+        self.spinBox_2.setMinimumSize(QSize(0, 0))
         self.spinBox_2.setMinimum(1)
         self.spinBox_2.setMaximum(20)
         self.spinBox_2.setValue(4)
@@ -594,7 +646,7 @@ class Ui_MainWindow(object):
         self.button_start_search = QPushButton(self.results_frame)
         self.button_start_search.setObjectName(u"button_start_search")
         self.button_start_search.setMinimumSize(QSize(0, 0))
-        self.button_start_search.setFont(font3)
+        self.button_start_search.setFont(font1)
         icon6 = QIcon()
         icon6.addFile(u":/images/search-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.button_start_search.setIcon(icon6)
@@ -644,7 +696,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1206, 25))
+        self.menubar.setGeometry(QRect(0, 0, 1206, 26))
         self.menubar.setStyleSheet(u"\n"
 "     QMenuBar {\n"
 "         background-color: #2d2d30;\n"

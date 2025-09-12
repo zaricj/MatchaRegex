@@ -13,7 +13,7 @@
   <property name="font">
    <font>
     <family>Segoe UI</family>
-    <pointsize>9</pointsize>
+    <pointsize>10</pointsize>
     <bold>false</bold>
     <kerning>true</kerning>
    </font>
@@ -26,92 +26,100 @@
     <normaloff>:/images/clean-emissions-svgrepo-com.png</normaloff>:/images/clean-emissions-svgrepo-com.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">
-    QMainWindow {
-        background-color: #1e1e1e;
-        color: #ffffff;
-    }
-    
-    QLabel {
-        color: #ffffff;
-        font-weight: 600;
-    }
-    
-    QLineEdit {
-        border: 1px solid #404040;
-        border-radius: 4px;
-        padding: 4px 10px;;
-        background-color: #2d2d30;
-        color: #ffffff;
-        font-size: 9pt;
-    }
-    
-    QLineEdit:focus {
-        border-color: #0078d4;
-        outline: none;
-    }
-    
-    QListWidget {
-        border: 1px solid #404040;
-        border-radius: 4px;
-        background-color: #2d2d30;
-        color: #ffffff;
-        alternate-background-color: #323233;
-        selection-background-color: #0078d4;
-    }
-    
-    QTableWidget {
-        border: 1px solid #404040;
-        border-radius: 4px;
-        background-color: #2d2d30;
-        color: #ffffff;
-        alternate-background-color: #323233;
-        gridline-color: #404040;
-    }
-    
-    QTableWidget::item {
-        padding: 4px;
-    }
-    
-    QTableWidget QHeaderView::section {
-        background-color: #404040;
-        color: #ffffff;
-        padding: 4px;
-        border: 1px solid #505050;
-    }
-    
-    QTextEdit {
-        border: 1px solid #404040;
-        border-radius: 4px;
-        background-color: #0c0c0c;
-        color: #ffffff;
-        font-family: 'Consolas', 'Monaco', monospace;
-        font-size: 8pt;
-        padding: 6px;
-    }
-    
-    QSpinBox {
-        border: 1px solid #404040;
-        border-radius: 4px;
-        padding: 4px;
-        background-color: #2d2d30;
-        color: #ffffff;
-        min-width: 50px;
-    }
-    
-    QSpinBox:focus {
-        border-color: #0078d4;
-    }
-    
-    QSpinBox::up-button, QSpinBox::down-button {
-        background-color: #404040;
-        border: none;
-        width: 16px;
-    }
-    
-    QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-        background-color: #505050;
-    }
+   <string notr="true">/* Main window and background */
+QWidget {
+    background-color: #2D2D30;
+    color: #F0F0F0;
+    font-family: 'Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+}
+
+/* Push Buttons */
+QPushButton {
+    background-color: #3E3E42;
+    border: 1px solid #5C5C60;
+    color: #F0F0F0;
+    padding: 4px 8px; /* Reduced padding */
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #4A4A4F;
+    border: 1px solid #6D6D72;
+}
+
+QPushButton:pressed {
+    background-color: #55555A;
+}
+
+QPushButton:disabled {
+    background-color: #3E3E42;
+    border: 1px solid #5C5C60;
+    color: #999999;
+}
+
+/* Line Edits (text input fields) */
+QLineEdit {
+    background-color: #252526;
+    border: 1px solid #5C5C60;
+    padding: 3px; /* Reduced padding */
+    border-radius: 4px;
+    selection-background-color: #0078D7;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit:focus {
+    border: 1px solid #0078D7; /* Accent color on focus */
+}
+
+QTextEdit#program_output {
+    background-color: #0c0c0c;
+    color: #ffffff;
+}
+
+/* Checkboxes and Radio Buttons */
+QCheckBox, QRadioButton {
+    color: #F0F0F0;
+}
+
+QCheckBox::indicator, QRadioButton::indicator {
+    background-color: #3E3E42;
+    border: 1px solid #5C5C60;
+    width: 14px;
+    height: 14px;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #0078D7;
+    border: 1px solid #0078D7;
+    image: url(:/icons/checkmark.svg); /* Placeholder, replace with a path to a checkmark icon */
+}
+
+QRadioButton::indicator:checked {
+    background-color: #0078D7;
+    border: 1px solid #0078D7;
+}
+
+/* Sliders */
+QSlider::groove:horizontal {
+    border: 1px solid #5C5C60;
+    height: 6px;
+    background: #3E3E42;
+    border-radius: 3px;
+}
+
+QSlider::handle:horizontal {
+    background: #F0F0F0;
+    border: 1px solid #5C5C60;
+    width: 16px;
+    margin: -5px 0;
+    border-radius: 8px;
+}
+
+QSlider::sub-page:horizontal {
+    background: #0078D7;
+    border-radius: 3px;
+}
 
 /* Progress Bar */
 QProgressBar {
@@ -127,23 +135,74 @@ QProgressBar::chunk {
     background-color: #0078D7;
 }
 
-/* Checkboxes */
-QCheckBox {
-    spacing: 6px;
-    color: #f3f3f3;
+/* Scroll Bars */
+QScrollBar:vertical, QScrollBar:horizontal {
+    border: none;
+    background: #252526;
+    width: 10px;
+    margin: 0px 0px 0px 0px;
 }
-QCheckBox::indicator {
-    width: 14px;
-    height: 14px;
-    border: 1px solid #888;
-    border-radius: 3px;
-    background: #2b2b2b;
+
+QScrollBar::handle:vertical {
+    background: #5C5C60;
+    min-height: 20px;
+    border-radius: 5px;
 }
-QCheckBox::indicator:checked {
-    background-color: #0078D7;
-    image: url(:/icons/checkmark.png); /* optional checkmark icon */
+
+QScrollBar::handle:horizontal {
+    background: #5C5C60;
+    min-width: 20px;
+    border-radius: 5px;
 }
-   </string>
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    border: none;
+    background: #252526;
+}
+
+/* Tabs */
+QTabBar::tab {
+    background-color: #2D2D30;
+    color: #F0F0F0;
+    padding: 8px 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+QTabBar::tab:selected {
+    background-color: #3E3E42;
+    border-bottom: 2px solid #0078D7;
+}
+
+QTabWidget::pane {
+    border: 1px solid #5C5C60;
+}
+
+/* List and Tree Views */
+QListView, QTreeView {
+    background-color: #252526;
+    border: 1px solid #5C5C60;
+    selection-background-color: #0078D7;
+    selection-color: #FFFFFF;
+}
+
+    QListWidget {
+        border: 1px solid #404040;
+        border-radius: 4px;
+        background-color: #2d2d30;
+        color: #ffffff;
+        alternate-background-color: #323233;
+        selection-background-color: #0078d4;
+    }
+
+/* QFrame */
+QFrame#output_frame {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+}
+</string>
   </property>
   <property name="animated">
    <bool>true</bool>
@@ -183,7 +242,7 @@ QCheckBox::indicator:checked {
       <property name="font">
        <font>
         <family>Segoe UI</family>
-        <pointsize>12</pointsize>
+        <pointsize>10</pointsize>
         <fontweight>DemiBold</fontweight>
        </font>
       </property>
@@ -277,14 +336,14 @@ QCheckBox::indicator:checked {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>90</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -326,7 +385,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -410,7 +469,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -458,7 +517,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -489,7 +548,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -530,7 +589,7 @@ QCheckBox::indicator:checked {
              <property name="font">
               <font>
                <family>Segoe UI</family>
-               <pointsize>9</pointsize>
+               <pointsize>10</pointsize>
                <fontweight>DemiBold</fontweight>
               </font>
              </property>
@@ -937,7 +996,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -950,7 +1009,7 @@ QCheckBox::indicator:checked {
               <widget class="QSpinBox" name="spinBox">
                <property name="minimumSize">
                 <size>
-                 <width>60</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -976,7 +1035,7 @@ QCheckBox::indicator:checked {
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>10</pointsize>
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
@@ -989,7 +1048,7 @@ QCheckBox::indicator:checked {
               <widget class="QSpinBox" name="spinBox_2">
                <property name="minimumSize">
                 <size>
-                 <width>60</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1030,7 +1089,7 @@ QCheckBox::indicator:checked {
              <property name="font">
               <font>
                <family>Segoe UI</family>
-               <pointsize>9</pointsize>
+               <pointsize>10</pointsize>
                <fontweight>DemiBold</fontweight>
               </font>
              </property>
@@ -1115,7 +1174,7 @@ QCheckBox::indicator:checked {
      <x>0</x>
      <y>0</y>
      <width>1206</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="styleSheet">

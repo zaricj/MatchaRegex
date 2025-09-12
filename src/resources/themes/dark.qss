@@ -158,3 +158,19 @@ QListView, QTreeView {
     selection-background-color: #0078D7;
     selection-color: #FFFFFF;
 }
+
+QListWidget {
+    border: 1px solid #404040;
+    border-radius: 4px;
+    background-color: #2d2d30;
+    color: #ffffff;
+    alternate-background-color: #323233;
+    selection-background-color: #0078d4;
+}
+
+/* QFrame */
+QFrame#output_frame {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+}
