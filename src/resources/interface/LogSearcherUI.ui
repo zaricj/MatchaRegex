@@ -174,6 +174,12 @@ QCheckBox::indicator:checked {
     </property>
     <item>
      <widget class="QLabel" name="title_label">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
       <property name="font">
        <font>
         <family>Segoe UI</family>
@@ -459,6 +465,10 @@ QCheckBox::indicator:checked {
                <property name="text">
                 <string>Convert</string>
                </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>:/images/exchange-svgrepo-com.png</normaloff>:/images/exchange-svgrepo-com.png</iconset>
+               </property>
               </widget>
              </item>
             </layout>
@@ -652,12 +662,20 @@ QCheckBox::indicator:checked {
                <property name="text">
                 <string>Remove Selected</string>
                </property>
+               <property name="icon">
+                <iconset resource="qrc/LogSearcher_resource.qrc">
+                 <normaloff>:/images/remove-selected.png</normaloff>:/images/remove-selected.png</iconset>
+               </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="button_regex_pattern_remove_all">
                <property name="text">
                 <string>Remove All</string>
+               </property>
+               <property name="icon">
+                <iconset resource="qrc/LogSearcher_resource.qrc">
+                 <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
              </item>
@@ -705,6 +723,12 @@ QCheckBox::indicator:checked {
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
                </property>
                <property name="font">
                 <font>
@@ -1003,6 +1027,10 @@ QCheckBox::indicator:checked {
              <property name="text">
               <string>Start Search</string>
              </property>
+             <property name="icon">
+              <iconset resource="qrc/LogSearcher_resource.qrc">
+               <normaloff>:/images/search-file.png</normaloff>:/images/search-file.png</iconset>
+             </property>
             </widget>
            </item>
            <item>
@@ -1037,12 +1065,20 @@ QCheckBox::indicator:checked {
                <property name="text">
                 <string>Export to Excel</string>
                </property>
+               <property name="icon">
+                <iconset resource="qrc/LogSearcher_resource.qrc">
+                 <normaloff>:/images/export-to-file.png</normaloff>:/images/export-to-file.png</iconset>
+               </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="button_search_result_clear_results">
                <property name="text">
                 <string>Clear Results</string>
+               </property>
+               <property name="icon">
+                <iconset resource="qrc/LogSearcher_resource.qrc">
+                 <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
              </item>

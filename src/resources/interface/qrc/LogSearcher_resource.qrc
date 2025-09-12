@@ -1,5 +1,9 @@
 <RCC>
   <qresource>
+    <file>images/export-to-file.png</file>
+    <file>images/remove-all.png</file>
+    <file>images/remove-selected.png</file>
     <file>images/clean-emissions-svgrepo-com.png</file>
+    <file>images/search-file.png</file>
   </qresource>
 </RCC>

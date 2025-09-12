@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
     QProgressBar, QPushButton, QSizePolicy, QSpacerItem,
     QSpinBox, QStatusBar, QTableWidget, QTableWidgetItem,
     QTextEdit, QVBoxLayout, QWidget)
+
 from resources.interface.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
@@ -171,6 +172,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setContentsMargins(10, 10, 10, 10)
         self.title_label = QLabel(self.centralwidget)
         self.title_label.setObjectName(u"title_label")
+        self.title_label.setMinimumSize(QSize(0, 30))
         font1 = QFont()
         font1.setFamilies([u"Segoe UI"])
         font1.setPointSize(12)
@@ -319,6 +321,9 @@ class Ui_MainWindow(object):
         self.button_string_to_regex.setSizePolicy(sizePolicy1)
         self.button_string_to_regex.setMinimumSize(QSize(100, 0))
         self.button_string_to_regex.setFont(font3)
+        icon2 = QIcon()
+        icon2.addFile(u":/images/exchange-svgrepo-com.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_string_to_regex.setIcon(icon2)
 
         self.horizontalLayout_03.addWidget(self.button_string_to_regex)
 
@@ -350,8 +355,8 @@ class Ui_MainWindow(object):
         self.button_add_regex_to_list_widget.setMinimumSize(QSize(0, 0))
         self.button_add_regex_to_list_widget.setFont(font3)
         self.button_add_regex_to_list_widget.setStyleSheet(u"")
-        icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
-        self.button_add_regex_to_list_widget.setIcon(icon2)
+        icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.button_add_regex_to_list_widget.setIcon(icon3)
         self.button_add_regex_to_list_widget.setIconSize(QSize(16, 16))
         self.button_add_regex_to_list_widget.setFlat(False)
 
@@ -405,11 +410,17 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.button_regex_pattern_remove_selected = QPushButton(self.pattern_list_frame)
         self.button_regex_pattern_remove_selected.setObjectName(u"button_regex_pattern_remove_selected")
+        icon4 = QIcon()
+        icon4.addFile(u":/images/remove-selected.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_regex_pattern_remove_selected.setIcon(icon4)
 
         self.horizontalLayout_4.addWidget(self.button_regex_pattern_remove_selected)
 
         self.button_regex_pattern_remove_all = QPushButton(self.pattern_list_frame)
         self.button_regex_pattern_remove_all.setObjectName(u"button_regex_pattern_remove_all")
+        icon5 = QIcon()
+        icon5.addFile(u":/images/remove-all.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_regex_pattern_remove_all.setIcon(icon5)
 
         self.horizontalLayout_4.addWidget(self.button_regex_pattern_remove_all)
 
@@ -439,6 +450,7 @@ class Ui_MainWindow(object):
         self.section_label_program_output.setObjectName(u"section_label_program_output")
         sizePolicy.setHeightForWidth(self.section_label_program_output.sizePolicy().hasHeightForWidth())
         self.section_label_program_output.setSizePolicy(sizePolicy)
+        self.section_label_program_output.setMaximumSize(QSize(16777215, 16777215))
         self.section_label_program_output.setFont(font2)
         self.section_label_program_output.setStyleSheet(u"\n"
 "             color: #0078d4;\n"
@@ -581,6 +593,9 @@ class Ui_MainWindow(object):
         self.button_start_search.setObjectName(u"button_start_search")
         self.button_start_search.setMinimumSize(QSize(0, 0))
         self.button_start_search.setFont(font3)
+        icon6 = QIcon()
+        icon6.addFile(u":/images/search-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_start_search.setIcon(icon6)
 
         self.verticalLayout_table_widget.addWidget(self.button_start_search)
 
@@ -599,11 +614,15 @@ class Ui_MainWindow(object):
         self.button_search_result_export_to_csv = QPushButton(self.results_frame)
         self.button_search_result_export_to_csv.setObjectName(u"button_search_result_export_to_csv")
         self.button_search_result_export_to_csv.setEnabled(True)
+        icon7 = QIcon()
+        icon7.addFile(u":/images/export-to-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_search_result_export_to_csv.setIcon(icon7)
 
         self.horizontalLayout_5.addWidget(self.button_search_result_export_to_csv)
 
         self.button_search_result_clear_results = QPushButton(self.results_frame)
         self.button_search_result_clear_results.setObjectName(u"button_search_result_clear_results")
+        self.button_search_result_clear_results.setIcon(icon5)
 
         self.horizontalLayout_5.addWidget(self.button_search_result_clear_results)
 
