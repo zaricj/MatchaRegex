@@ -44,6 +44,11 @@ QLineEdit:focus {
     border: 1px solid #0078D7; /* Accent color on focus */
 }
 
+QTextEdit#program_output {
+    background-color: #0c0c0c;
+    color: #ffffff;
+}
+
 /* Checkboxes and Radio Buttons */
 QCheckBox, QRadioButton {
     color: #F0F0F0;

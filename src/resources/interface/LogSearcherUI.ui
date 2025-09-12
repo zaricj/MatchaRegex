@@ -776,6 +776,16 @@ QCheckBox::indicator:checked {
                </property>
                <item>
                 <property name="text">
+                 <string>10pt</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>11pt</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
                  <string>12pt</string>
                 </property>
                </item>
@@ -1030,6 +1040,12 @@ QCheckBox::indicator:checked {
              <property name="icon">
               <iconset resource="qrc/LogSearcher_resource.qrc">
                <normaloff>:/images/search-file.png</normaloff>:/images/search-file.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>22</width>
+               <height>22</height>
+              </size>
              </property>
             </widget>
            </item>

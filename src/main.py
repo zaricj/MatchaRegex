@@ -20,7 +20,7 @@ from PySide6.QtCore import (
 import sys
 from pathlib import Path
 import pandas as pd
-
+#font: 10pt "Consolas";
 # from resources.interface.qrc import LogSearcher_resource_rc
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
@@ -161,9 +161,11 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     @Slot()
     def on_removeAllRegexPattern(self): # Handler for "Remove All" button
         """Clear all patterns from the list."""
-        self.ui.list_widget_regex.clear()
-        self.regex_patterns.clear()
-        self.ui.statusbar.showMessage("Removed all regex patterns from list!", 5000)
+        current_items = self.ui.list_widget_regex.count()
+        if current_items > 0:
+            self.ui.list_widget_regex.clear()
+            self.regex_patterns.clear()
+            self.ui.statusbar.showMessage("Removed all regex patterns from list!", 5000)
         
     @Slot()
     def on_startSearch(self): # Handler for "Start Search" button
