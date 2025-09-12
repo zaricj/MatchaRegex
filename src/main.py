@@ -1,4 +1,5 @@
 # File: main.py 
+from modules import excel_exporter
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
@@ -7,7 +8,6 @@ from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QFileDialog,
 )
 from PySide6.QtCore import (
     Slot,
@@ -19,8 +19,8 @@ from PySide6.QtCore import (
 )
 import sys
 from pathlib import Path
-import pandas as pd
-#font: 10pt "Consolas";
+import webbrowser
+
 # from resources.interface.qrc import LogSearcher_resource_rc
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         from modules.regex_builder import RegexBuilder
         self.helper = HelperMethods(main_window=self)
         self.regex_builder = RegexBuilder(main_window=self)
+        
         self._active_worker = None
         self.regex_patterns: list[str] = []
         
@@ -169,6 +170,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
     @Slot()
     def on_startSearch(self): # Handler for "Start Search" button
+        """Main business logic of app, searches the found files with the set regex patterns"""
         try:
             # Clear previous output
             self.ui.program_output.clear()
@@ -177,6 +179,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             folder_path = Path(self.ui.line_edit_files_folder.text().strip())
             file_patterns = [p.strip() for p in self.ui.line_edit_file_pattern.text().split(",") if p.strip()]
             regex_patterns = self.regex_patterns
+            multiline_search = self.ui.checkbox_multiline_search.isChecked()
             
             if not folder_path.exists() or not folder_path.is_dir():
                 QMessageBox.warning(self, "Input Error", "Please specify a valid folder path.")
@@ -195,7 +198,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 operation='search_files', 
                 regex_patterns=regex_patterns,
                 folder_path=folder_path,
-                file_patterns=file_patterns)
+                file_patterns=file_patterns,
+                multiline=multiline_search)
             
             self._active_worker = regex_processor_thread
             
@@ -206,11 +210,13 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         except Exception as ex:
             QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
     
+    @Slot()
     def on_clearResults(self): # Handler for clear table widget
         if self.ui.table_widget_results.columnCount() > 0:
             self.ui.table_widget_results.clearContents()
             self.ui.statusbar.showMessage("Cleared results table!", 5000)
-            
+
+    @Slot()
     def on_exportToExcel(self):
         """Export table_widget_results to Excel file."""
         table = self.ui.table_widget_results
@@ -233,20 +239,18 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 row_data.append(item.text() if item else "")
             data.append(row_data)
     
-        # Create DataFrame
-        df = pd.DataFrame(data, columns=headers)
+        from modules.excel_exporter import ExcelExporterThread
+        # Pass 'self' as main_window reference
+        excel_exporter_thread = ExcelExporterThread(data, headers, self)
+        self.connect_excel_exporter_signals(excel_exporter_thread)
+        self.thread_pool.start(excel_exporter_thread)
     
-        # Prompt user for a save location
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export Results", "Regex_Search_Result", "Excel Files (*.xlsx)")
-        if file_path:
-            try:
-                if not file_path.lower().endswith('.xlsx'):
-                    file_path += '.xlsx'
-                df.to_excel(file_path, index=False)
-                QMessageBox.information(self, "Export Successful", f"Results exported to:\n{file_path}")
-                self.ui.statusbar.showMessage("Results exported to Excel.", 5000)
-            except Exception as e:
-                QMessageBox.critical(self, "Export Error", f"Failed to export results: {e}")
+    @Slot()
+    def onClearProgramOutput(self):
+        """Clear Program Output Textbox"""
+        if len(self.ui.program_output.toPlainText()) > 0:
+            self.ui.program_output.clear()
+            self.ui.statusbar.showMessage("Output cleared!", 5000)
             
 if __name__ == "__main__":
     # Initialize the application

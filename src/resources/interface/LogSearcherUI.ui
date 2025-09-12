@@ -43,13 +43,53 @@ QPushButton {
     border-radius: 4px;
 }
 
+QPushButton#button_regex_pattern_remove_selected:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_regex_pattern_remove_selected:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_regex_pattern_remove_all:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_regex_pattern_remove_all:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_search_result_clear_results:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_search_result_clear_results:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_clear_program_output:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_clear_program_output:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_search_result_export_to_csv:hover {
+    background-color: #39814e;
+}
+
+QPushButton#button_search_result_export_to_csv:pressed {
+    background-color: #2b613a;
+}
+
 QPushButton:hover {
-    background-color: #4A4A4F;
+    background-color: #393d81;
     border: 1px solid #6D6D72;
 }
 
 QPushButton:pressed {
-    background-color: #55555A;
+    background-color: #2b2f61;
 }
 
 QPushButton:disabled {
@@ -514,6 +554,12 @@ QFrame#output_frame {
                  <height>0</height>
                 </size>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <family>Segoe UI</family>
@@ -525,8 +571,14 @@ QFrame#output_frame {
                 <string>Convert</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>:/images/exchange-svgrepo-com.png</normaloff>:/images/exchange-svgrepo-com.png</iconset>
+                <iconset resource="qrc/LogSearcher_resource.qrc">
+                 <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>14</width>
+                 <height>14</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -807,6 +859,37 @@ QFrame#output_frame {
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="button_clear_program_output">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Segoe UI</family>
+                 <pointsize>10</pointsize>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                 <underline>false</underline>
+                </font>
+               </property>
+               <property name="mouseTracking">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Clear Output</string>
+               </property>
+               <property name="default">
+                <bool>false</bool>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_font_size_program_output">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -1025,41 +1108,15 @@ QFrame#output_frame {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_4">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <family>Segoe UI</family>
-                 <pointsize>10</pointsize>
-                 <fontweight>DemiBold</fontweight>
-                </font>
-               </property>
+              <widget class="QPushButton" name="button_limit_rows">
                <property name="text">
-                <string>Columns:</string>
+                <string>Limit Rows</string>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="spinBox_2">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
+               <property name="checkable">
+                <bool>false</bool>
                </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>20</number>
-               </property>
-               <property name="value">
-                <number>4</number>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1079,11 +1136,30 @@ QFrame#output_frame {
             </layout>
            </item>
            <item>
+            <widget class="QCheckBox" name="checkbox_multiline_search">
+             <property name="text">
+              <string>Enable multiline regex search</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="button_start_search">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
                <width>0</width>
                <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
               </size>
              </property>
              <property name="font">
@@ -1102,8 +1178,8 @@ QFrame#output_frame {
              </property>
              <property name="iconSize">
               <size>
-               <width>22</width>
-               <height>22</height>
+               <width>24</width>
+               <height>24</height>
               </size>
              </property>
             </widget>
@@ -1192,6 +1268,21 @@ QFrame#output_frame {
      }
     </string>
    </property>
+   <widget class="QMenu" name="menuOpen">
+    <property name="title">
+     <string>Open</string>
+    </property>
+    <addaction name="actionOpen_Input_Folder"/>
+    <addaction name="actionOpen_Output_Folder"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionRegex_101"/>
+   </widget>
+   <addaction name="menuOpen"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="styleSheet">
@@ -1204,6 +1295,21 @@ QFrame#output_frame {
     </string>
    </property>
   </widget>
+  <action name="actionOpen_Output_Folder">
+   <property name="text">
+    <string>Open Output Folder</string>
+   </property>
+  </action>
+  <action name="actionRegex_101">
+   <property name="text">
+    <string>Regex 101</string>
+   </property>
+  </action>
+  <action name="actionOpen_Input_Folder">
+   <property name="text">
+    <string>Open Input Folder</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="qrc/LogSearcher_resource.qrc"/>

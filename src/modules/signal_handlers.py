@@ -2,16 +2,23 @@
 # APPROACH 1: Mixin Pattern (Recommended)
 # =====================================================
 # File: modules/signal_handlers.py
-from PySide6.QtCore import Slot
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import Slot, QUrl
+from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog
+from modules.excel_exporter import ExcelExporterThread
 from modules.helpers import HelperMethods
 from modules.regex_processor import RegexProcessorThread
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 import pandas as pd
+from pathlib import Path
 
 class SignalHandlerMixin:
     """Mixin class to handle all signal connections and slot methods"""
     ui: Ui_MainWindow
+    
+    def __init__(self):
+        super().__init__()
+        self._current_excel_exporter = None  # Track current exporter
     
     # ============= SLOT METHODS =============
     
@@ -34,9 +41,34 @@ class SignalHandlerMixin:
     @Slot(str)
     def handle_program_output(self, text: str):
         self.ui.program_output.append(text)
+    
+    @Slot(str, int)
+    def handle_statusbar_message(self, message: str, timeout: int = 5000):
+        self.ui.statusbar.showMessage(message, timeout)
+        
+    @Slot()
+    def handle_request_save_file_path(self):
+        """Handle request for file save path from excel exporter thread"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export Result", 
+            "Regex_Search_Result", 
+            "Excel Files (*.xlsx)"
+        )
+        
+        # Send the file path back to the thread
+        if self._current_excel_exporter:
+            self._current_excel_exporter.set_file_path(file_path)
 
-    @Slot(list)
-    def handle_finished(self, results: list):
+    @Slot(str)
+    def handle_open_url(self, url: str):
+        """Handle opening URL (for opening folder)"""
+        QDesktopServices.openUrl(QUrl.fromLocalFile(url))
+
+    # ====== START FINISHED SIGNAL SLOTS START====== #
+    
+    @Slot(list) # For the RegexProcessorThread
+    def handle_finished_regex_processor(self, results: list):
         try:
             if results:
                 # Normalize results to ensure consistent keys
@@ -66,6 +98,41 @@ class SignalHandlerMixin:
         if hasattr(self, "_active_worker"):
             self._active_worker = None
     
+    @Slot(str)
+    def handler_excel_exporter_export_success(self, file_path: str):
+        """Enhanced success handler with 'Open Folder' button"""
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setWindowTitle("Export Successful")
+        msg_box.setText("Result exported successfully!")
+        msg_box.setInformativeText(f"File saved to:\n{file_path}")
+        
+        # Add custom buttons
+        open_folder_btn = msg_box.addButton("Open Folder", QMessageBox.ButtonRole.ActionRole)
+        open_file_btn = msg_box.addButton("Open File", QMessageBox.ButtonRole.ActionRole)
+        ok_btn = msg_box.addButton(QMessageBox.StandardButton.Ok)
+        
+        # Set OK as default
+        msg_box.setDefaultButton(ok_btn)
+        
+        # Execute dialog and handle response
+        msg_box.exec()
+        
+        clicked_button = msg_box.clickedButton()
+        if clicked_button == open_folder_btn:
+            # Open the folder containing the file
+            folder_path = str(Path(file_path).parent)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(folder_path))
+        elif clicked_button == open_file_btn:
+            # Open the file directly
+            QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+        
+        # Clear the current exporter reference
+        self._current_excel_exporter = None
+    
+    # ====== END FINISHED SIGNAL SLOTS END ====== #
+    
+    # Method to handle widget enabled states
     def _enable_start_button(self, enable: bool):
         """Helper method to enable or disable the search button."""
         self.ui.button_start_search.setEnabled(enable)
@@ -74,9 +141,6 @@ class SignalHandlerMixin:
         else:
             self.ui.statusbar.showMessage("Searching...", 0)
     
-    @Slot(str, int)
-    def handle_statusbar_message(self, message: str, timeout: int = 5000):
-        self.ui.statusbar.showMessage(message, timeout)
     
     # ============= CONNECTION METHODS =============
     
@@ -88,13 +152,32 @@ class SignalHandlerMixin:
         regex_processor.signals.message_information.connect(self.handle_info_message)
         regex_processor.signals.message_warning.connect(self.handle_warning_message)
         regex_processor.signals.message_critical.connect(self.handle_critical_message)
-        regex_processor.signals.finished.connect(self.handle_finished)
+        regex_processor.signals.finished.connect(self.handle_finished_regex_processor)
+        
+    def connect_excel_exporter_signals(self, excel_exporter: ExcelExporterThread):
+        """Connect the signals from the excel exporter thread to the main window's slots
+
+        Args:
+            excel_exporter (ExcelExporterThread): The excel exporter thread instance
+        """
+        # Store reference to current exporter
+        self._current_excel_exporter = excel_exporter
+        
+        excel_exporter.signals.message_information.connect(self.handle_info_message)
+        excel_exporter.signals.message_warning.connect(self.handle_warning_message)
+        excel_exporter.signals.message_critical.connect(self.handle_critical_message)
+        excel_exporter.signals.statusbar_show_message.connect(self.handle_statusbar_message)
+        excel_exporter.signals.request_save_file_path.connect(self.handle_request_save_file_path)
+        excel_exporter.signals.export_success_with_path.connect(self.handler_excel_exporter_export_success)
         
     def connect_helper_method_signals(self, helper: HelperMethods):
         """Connect all signals from HelperMethods to appropriate slots"""
         helper.signals.program_output_text.connect(self.handle_program_output)
         helper.signals.statusbar_show_message.connect(self.handle_statusbar_message)
-        
+    
+    def connect_menu_bar_actions(self):
+        menu_help = self.ui.menuHelp
+        menu_help.menuAction(self.ui.actionRegex_101)
         
     def connect_ui_events(self):
         """Connect all UI element events to their handlers"""
@@ -127,6 +210,8 @@ class SignalHandlerMixin:
         self.ui.button_search_result_export_to_csv.clicked.connect(self.on_exportToExcel)
         # Clear results click event
         self.ui.button_search_result_clear_results.clicked.connect(self.on_clearResults)
+        # Clear program output click event
+        self.ui.button_clear_program_output.clicked.connect(self.onClearProgramOutput)
     
     # ============= HELPER METHODS =============
     

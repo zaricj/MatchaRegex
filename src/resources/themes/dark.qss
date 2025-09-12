@@ -15,13 +15,53 @@ QPushButton {
     border-radius: 4px;
 }
 
+QPushButton#button_regex_pattern_remove_selected:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_regex_pattern_remove_selected:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_regex_pattern_remove_all:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_regex_pattern_remove_all:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_search_result_clear_results:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_search_result_clear_results:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_clear_program_output:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_clear_program_output:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_search_result_export_to_csv:hover {
+    background-color: #39814e;
+}
+
+QPushButton#button_search_result_export_to_csv:pressed {
+    background-color: #2b613a;
+}
+
 QPushButton:hover {
-    background-color: #4A4A4F;
+    background-color: #393d81;
     border: 1px solid #6D6D72;
 }
 
 QPushButton:pressed {
-    background-color: #55555A;
+    background-color: #2b2f61;
 }
 
 QPushButton:disabled {
@@ -105,32 +145,6 @@ QProgressBar {
 QProgressBar::chunk {
     border-radius: 6px;
     background-color: #0078D7;
-}
-
-/* Scroll Bars */
-QScrollBar:vertical, QScrollBar:horizontal {
-    border: none;
-    background: #252526;
-    width: 10px;
-    margin: 0px 0px 0px 0px;
-}
-
-QScrollBar::handle:vertical {
-    background: #5C5C60;
-    min-height: 20px;
-    border-radius: 5px;
-}
-
-QScrollBar::handle:horizontal {
-    background: #5C5C60;
-    min-width: 20px;
-    border-radius: 5px;
-}
-
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
-QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-    border: none;
-    background: #252526;
 }
 
 /* Tabs */

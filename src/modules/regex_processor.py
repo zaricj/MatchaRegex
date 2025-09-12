@@ -2,7 +2,6 @@ from typing import Any
 import re
 from pathlib import Path
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
-import time
 
 class RegexProcessorSignals(QObject):
     message_information = Signal(str, str)
@@ -14,13 +13,14 @@ class RegexProcessorSignals(QObject):
     finished = Signal(list)  # Changed to emit list instead of pd.DataFrame
 
 class RegexProcessorThread(QRunnable):
-    def __init__(self, operation: str, regex_patterns: list = None, folder_path: Path = None, file_patterns: list[str] = None):
+    def __init__(self, operation: str, regex_patterns: list = None, folder_path: Path = None, file_patterns: list[str] = None, multiline: bool = False):
         super().__init__()
         self.signals = RegexProcessorSignals()
         self.operation = operation
         self.regex_patterns = regex_patterns if regex_patterns is not None else []
         self.folder_path = folder_path
         self.file_patterns = file_patterns if file_patterns is not None else []
+        self.multiline = multiline
         self.setAutoDelete(True)
 
     @Slot()
@@ -59,27 +59,39 @@ class RegexProcessorThread(QRunnable):
                     continue
 
                 with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-                    line_count = 0
-                    for line_number, line in enumerate(f, start=1):
-                        line_count += 1
-                        line = line.strip()
-                        if not line:
-                            continue
-
+                    if self.multiline:
+                        # ✅ Whole file at once
+                        text = f.read()
                         for pattern_idx, (compiled_regex, group_names) in enumerate(zip(compiled_patterns, pattern_group_names), 1):
-                            try:
-                                for match in compiled_regex.finditer(line):
-                                    result = {"File": filepath.name, "Line": line_number}
-                                    if group_names:
-                                        for group_name, group_value in match.groupdict().items():
-                                            col_name = f"Pattern{pattern_idx}_{group_name}" if use_pattern_prefix else group_name
-                                            result[col_name] = str(group_value) if group_value is not None else ""
-                                    else:
-                                        result[f"Pattern{pattern_idx}_Match"] = str(match.group(0)) if match.group(0) is not None else ""
-                                    results.append(result)
-                            except Exception as match_error:
-                                self.signals.program_output_text.emit(f"Regex error on line {line_number} in {filepath.name}: {str(match_error)}")
+                            for match in compiled_regex.finditer(text):
+                                result = {"File": filepath.name}
+                                if group_names:
+                                    for group_name, group_value in match.groupdict().items():
+                                        col_name = f"Pattern{pattern_idx}_{group_name}" if use_pattern_prefix else group_name
+                                        result[col_name] = str(group_value) if group_value else ""
+                                else:
+                                    result[f"Pattern{pattern_idx}_Match"] = match.group(0) or ""
+                                results.append(result)
+                    else:
+                        for line_number, line in enumerate(f, start=1):
+                            line = line.strip()
+                            if not line:
                                 continue
+
+                            for pattern_idx, (compiled_regex, group_names) in enumerate(zip(compiled_patterns, pattern_group_names), 1):
+                                try:
+                                    for match in compiled_regex.finditer(line):
+                                        result = {"File": filepath.name, "Line": line_number}
+                                        if group_names:
+                                            for group_name, group_value in match.groupdict().items():
+                                                col_name = f"Pattern{pattern_idx}_{group_name}" if use_pattern_prefix else group_name
+                                                result[col_name] = str(group_value) if group_value is not None else ""
+                                        else:
+                                            result[f"Pattern{pattern_idx}_Match"] = str(match.group(0)) if match.group(0) is not None else ""
+                                        results.append(result)
+                                except Exception as match_error:
+                                    self.signals.program_output_text.emit(f"Regex error on line {line_number} in {filepath.name}: {str(match_error)}")
+                                    continue
 
             except Exception as file_error:
                 self.signals.program_output_text.emit(f"File error in {filepath.name}: {str(file_error)}")
@@ -120,7 +132,8 @@ class RegexProcessorThread(QRunnable):
         
         for regex in self.regex_patterns:
             try:
-                compiled = re.compile(regex)
+                flags = re.MULTILINE if self.multiline else 0
+                compiled = re.compile(regex, flags)
                 group_names = self.extract_named_groups_from_regex(regex)
                 if not group_names:
                     self.signals.program_output_text.emit(f"Warning: Pattern '{regex}' has no named groups; using 'Match' as column")
