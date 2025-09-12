@@ -2,9 +2,9 @@
 # APPROACH 1: Mixin Pattern (Recommended)
 # =====================================================
 # File: modules/signal_handlers.py
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtCore import Slot, QUrl
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem, QFileDialog
+from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
 from modules.excel_exporter import ExcelExporterThread
 from modules.helpers import HelperMethods
 from modules.regex_processor import RegexProcessorThread
@@ -45,20 +45,6 @@ class SignalHandlerMixin:
     @Slot(str, int)
     def handle_statusbar_message(self, message: str, timeout: int = 5000):
         self.ui.statusbar.showMessage(message, timeout)
-        
-    @Slot()
-    def handle_request_save_file_path(self):
-        """Handle request for file save path from excel exporter thread"""
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, 
-            "Export Result", 
-            "Regex_Search_Result", 
-            "Excel Files (*.xlsx)"
-        )
-        
-        # Send the file path back to the thread
-        if self._current_excel_exporter:
-            self._current_excel_exporter.set_file_path(file_path)
 
     @Slot(str)
     def handle_open_url(self, url: str):
@@ -98,11 +84,12 @@ class SignalHandlerMixin:
         if hasattr(self, "_active_worker"):
             self._active_worker = None
     
-    @Slot(str)
-    def handler_excel_exporter_export_success(self, file_path: str):
+    @Slot(str, object)
+    def handler_excel_exporter_export_success(self, file_path: str, app_icon: QPixmap):
         """Enhanced success handler with 'Open Folder' button"""
         msg_box = QMessageBox()
-        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setIconPixmap(app_icon)
+        msg_box.setWindowIcon(app_icon)
         msg_box.setWindowTitle("Export Successful")
         msg_box.setText("Result exported successfully!")
         msg_box.setInformativeText(f"File saved to:\n{file_path}")
@@ -167,7 +154,6 @@ class SignalHandlerMixin:
         excel_exporter.signals.message_warning.connect(self.handle_warning_message)
         excel_exporter.signals.message_critical.connect(self.handle_critical_message)
         excel_exporter.signals.statusbar_show_message.connect(self.handle_statusbar_message)
-        excel_exporter.signals.request_save_file_path.connect(self.handle_request_save_file_path)
         excel_exporter.signals.export_success_with_path.connect(self.handler_excel_exporter_export_success)
         
     def connect_helper_method_signals(self, helper: HelperMethods):

@@ -1,9 +1,13 @@
 from pathlib import Path
 
 def fix_qrc_import():
-
-    ui_file_path: str = r"C:\Users\ZaricJ\Documents\02_Entwicklung_und_Tools\Arbeit GitLab\RegexFileSearcher\src\resources\interface\LogSearcherUI_ui.py"
-    path = Path(ui_file_path)
+    cwd = Path(__file__).parent
+    print(cwd)
+    
+    ui_file_path = cwd / "src" / "resources"/ "interface" /"LogSearcherUI_ui.py"
+    print(f"UI File Path: {ui_file_path}")
+    
+    path = ui_file_path
     
     with open(path, "r") as file:
         lines = file.readlines()

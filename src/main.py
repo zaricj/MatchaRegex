@@ -1,13 +1,15 @@
 # File: main.py 
-from modules import excel_exporter
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+
+from PySide6.QtGui import QPixmap
 
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
+    QFileDialog,
 )
 from PySide6.QtCore import (
     Slot,
@@ -48,6 +50,10 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.dark_theme_file = cwd / "resources" / "themes" / "dark.qss"
         self.light_theme_file = cwd / "resources" / "themes" / "light.qss"
         
+        # GUI Window Icon
+        app_icon_path = cwd / "resources" / "interface" / "qrc" / "images" / "matcha-latte.png"
+        self.app_icon = QPixmap(app_icon_path.__str__())
+
         # Current app theme, saved to QSettings
         self.current_app_theme = self.settings.value("Application_Theme", "dark.qss")
         theme_path = self.dark_theme_file if self.current_app_theme == "dark.qss" else self.light_theme_file
@@ -222,28 +228,37 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         table = self.ui.table_widget_results
         row_count = table.rowCount()
         col_count = table.columnCount()
-    
+        
         if row_count == 0 or col_count == 0:
             QMessageBox.information(self, "Export Failed", "No results to export.")
             return
-    
-        # Get headers
-        headers = [table.horizontalHeaderItem(col).text() for col in range(col_count)]
-    
-        # Get data
-        data = []
-        for row in range(row_count):
-            row_data = []
-            for col in range(col_count):
-                item = table.item(row, col)
-                row_data.append(item.text() if item else "")
-            data.append(row_data)
-    
-        from modules.excel_exporter import ExcelExporterThread
-        # Pass 'self' as main_window reference
-        excel_exporter_thread = ExcelExporterThread(data, headers, self)
-        self.connect_excel_exporter_signals(excel_exporter_thread)
-        self.thread_pool.start(excel_exporter_thread)
+        
+        output_file_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export Result", 
+            "Regex_Search_Result", 
+            "Excel Files (*.xlsx)"
+        )
+        if output_file_path:
+            # Get headers
+            headers = [table.horizontalHeaderItem(col).text() for col in range(col_count)]
+
+            # Get data
+            data = []
+            for row in range(row_count):
+                row_data = []
+                for col in range(col_count):
+                    item = table.item(row, col)
+                    row_data.append(item.text() if item else "")
+                data.append(row_data)
+
+            from modules.excel_exporter import ExcelExporterThread
+
+            excel_exporter_thread = ExcelExporterThread(data, headers, output_file_path, self.app_icon)
+            self.connect_excel_exporter_signals(excel_exporter_thread)
+            self.thread_pool.start(excel_exporter_thread)
+        else:
+            self.ui.statusbar.showMessage("Action cancelled by user!", 5000)
     
     @Slot()
     def onClearProgramOutput(self):
