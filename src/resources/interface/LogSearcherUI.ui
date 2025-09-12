@@ -19,11 +19,11 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Log Searcher Pro</string>
+   <string>MatchaRegex</string>
   </property>
   <property name="windowIcon">
    <iconset resource="qrc/LogSearcher_resource.qrc">
-    <normaloff>:/images/clean-emissions-svgrepo-com.png</normaloff>:/images/clean-emissions-svgrepo-com.png</iconset>
+    <normaloff>:/images/matcha-latte.png</normaloff>:/images/matcha-latte.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">/* Main window and background */

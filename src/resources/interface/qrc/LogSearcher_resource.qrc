@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>images/matcha-latte.png</file>
     <file>images/export-to-file.png</file>
     <file>images/remove-all.png</file>
     <file>images/remove-selected.png</file>

@@ -35,7 +35,7 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         MainWindow.setFont(font)
         icon = QIcon()
-        icon.addFile(u":/images/clean-emissions-svgrepo-com.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/images/matcha-latte.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setStyleSheet(u"/* Main window and background */\n"
 "QWidget {\n"
@@ -731,7 +731,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Log Searcher Pro", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MatchaRegex", None))
         self.title_label.setText(QCoreApplication.translate("MainWindow", u"Log File Search & Analysis", None))
         self.section_label_1.setText(QCoreApplication.translate("MainWindow", u"Source Configuration", None))
         self.label_files_folder.setText(QCoreApplication.translate("MainWindow", u"Folder Path:", None))
