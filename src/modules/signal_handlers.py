@@ -2,6 +2,7 @@
 # APPROACH 1: Mixin Pattern (Recommended)
 # =====================================================
 # File: modules/signal_handlers.py
+import webbrowser
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtCore import Slot, QUrl
 from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
@@ -162,8 +163,7 @@ class SignalHandlerMixin:
         helper.signals.statusbar_show_message.connect(self.handle_statusbar_message)
     
     def connect_menu_bar_actions(self):
-        menu_help = self.ui.menuHelp
-        menu_help.menuAction(self.ui.actionRegex_101)
+        self.ui.actionRegex_101.triggered.connect(lambda: webbrowser.open("https://regex101.com"))
         
     def connect_ui_events(self):
         """Connect all UI element events to their handlers"""
