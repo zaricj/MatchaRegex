@@ -45,7 +45,19 @@ class ExcelExporterThread(QRunnable):
             # Export to Excel
             df = pd.DataFrame(self.data, columns=self.headers)
             self.signals.statusbar_show_message.emit(f"Exporting to Excel file in: {self.output_file_path}", 10000)
-            df.to_excel(self.output_file_path, index=False)
+            
+            with pd.ExcelWriter(self.output_file_path, engine="xlsxwriter") as writer:
+                df.to_excel(writer, sheet_name="Data Results", index=False)
+                worksheet = writer.sheets["Data Results"]
+                max_row, max_col = df.shape
+                column_settings = [{"header": col} for col in df.columns]
+                worksheet.add_table(0, 0, max_row, max_col - 1, {
+                    "columns": column_settings,
+                    "style": "Table Style Medium 16",
+                    "name": f"{"Data Results"[:30]}",
+                    "autofilter": True
+                })
+                worksheet.set_column(0, max_col - 1, 18)
 
             self.signals.export_success_with_path.emit(self.output_file_path, self.app_icon)
             self.signals.statusbar_show_message.emit("Result exported to Excel.", 5000)
