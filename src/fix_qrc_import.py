@@ -1,10 +1,15 @@
 from pathlib import Path
 
 def fix_qrc_import():
+    """
+    Fix the import error that appears after every ui file changed in Qt Designer.
+    
+    This opens the ui file and replaces the line with 'from resources.interface.qrc import LogSearcher_resource_rc' 
+    """
     cwd = Path(__file__).parent
     print(cwd)
     
-    ui_file_path = cwd / "src" / "resources"/ "interface" /"LogSearcherUI_ui.py"
+    ui_file_path = cwd / "resources"/ "interface" /"LogSearcherUI_ui.py"
     print(f"UI File Path: {ui_file_path}")
     
     path = ui_file_path
@@ -27,4 +32,3 @@ def fix_qrc_import():
         with open(path, "w") as file:
             file.writelines(lines)
             
-fix_qrc_import()
