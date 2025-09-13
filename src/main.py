@@ -22,7 +22,8 @@ from PySide6.QtCore import (
 import sys
 from pathlib import Path
 
-# from resources.interface.qrc import LogSearcher_resource_rc
+from fix_qrc_import import fix_qrc_import
+fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
