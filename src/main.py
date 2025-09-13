@@ -21,7 +21,6 @@ from PySide6.QtCore import (
 )
 import sys
 from pathlib import Path
-import webbrowser
 
 # from resources.interface.qrc import LogSearcher_resource_rc
 
@@ -70,6 +69,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def setup_application(self):
         """Initialize the application components"""
         self.connect_ui_events()  # From mixin (src/modules/signal_handlers.py)
+        self.connect_menu_bar_actions() # Menubar actions events connector
         
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -138,9 +138,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                     regex_input.setText(regex_input.text().strip() + " , " + regex)
                     self.ui.statusbar.showMessage("Added generated regex after existing regex, separated by a comma.", 5000)
             else:
-                QMessageBox.warning(self, "Input Error", "Please enter a valid sample string.")
+                QMessageBox.information(self, "Input Warning", "Please enter a valid sample string.")
         except Exception as ex:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
+            QMessageBox.critical(self, "Convert String Error", f"An error occurred in string conversion: {str(ex)}")
             
     @Slot()
     def add_regexToListWidget(self): # Handler for "Add Regex to List" button
@@ -152,9 +152,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.ui.line_edit_regex.clear()
                 self.ui.statusbar.showMessage(f"Added {regex_input} regex pattern to the list.", 5000)
             else:
-                QMessageBox.warning(self, "Input Error", "Please enter at least one regex pattern.")
+                QMessageBox.information(self, "Input Warning", "Please enter at least one regex pattern to the active search patterns list.")
         except Exception as ex:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
+            QMessageBox.critical(self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {str(ex)}")
     
     @Slot()
     def on_removeSelectedRegexPattern(self): # Handler for "Remove Selected" button
@@ -188,10 +188,10 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             multiline_search = self.ui.checkbox_multiline_search.isChecked()
             
             if not folder_path.exists() or not folder_path.is_dir():
-                QMessageBox.warning(self, "Input Error", "Please specify a valid folder path.")
+                QMessageBox.information(self, "Input Warning", "Please specify a valid folder path.")
                 return
             if not regex_patterns:
-                QMessageBox.warning(self, "Input Error", "Please add at least one regex pattern.")
+                QMessageBox.information(self, "Input Warning", "Please add at least one regex pattern.")
                 return
 
             # Disable the button to prevent multiple searches at once
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             self.thread_pool.start(regex_processor_thread)
             
         except Exception as ex:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(ex)}")
+            QMessageBox.critical(self, "Search Error", f"An error occurred in search: {str(ex)}")
     
     @Slot()
     def on_clearResults(self): # Handler for clear table widget
@@ -230,7 +230,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         col_count = table.columnCount()
         
         if row_count == 0 or col_count == 0:
-            QMessageBox.information(self, "Export Failed", "No results to export.")
+            QMessageBox.information(self, "Export Information", "No results to export.")
             return
         
         output_file_path, _ = QFileDialog.getSaveFileName(
