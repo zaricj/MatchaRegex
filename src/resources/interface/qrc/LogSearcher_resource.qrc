@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>images/checkmark.png</file>
     <file>images/matcha-latte.png</file>
     <file>images/export-to-file.png</file>
     <file>images/convert.png</file>

@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
     QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
     QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout,
     QWidget)
-from resources.interface.qrc import LogSearcher_resource_rc
+import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -47,6 +47,18 @@ class Ui_MainWindow(object):
 "    font-size: 10pt;\n"
 "}\n"
 "\n"
+"/* QMenu */\n"
+"QMenu {\n"
+"    background-color: #3E3E42;\n"
+"    border: 1px solid #5C5C60;\n"
+"    color: #F0F0F0;\n"
+"    border-radius: 4px;\n"
+"}\n"
+"\n"
+"QMenu::item:selected {\n"
+"    background-color: #393d81;\n"
+"}\n"
+"\n"
 "/* Push Buttons */\n"
 "QPushButton {\n"
 "    background-color: #3E3E42;\n"
@@ -68,7 +80,8 @@ class Ui_MainWindow(object):
 "    background-color: #813939;\n"
 "}\n"
 "\n"
-"QPushButton#button_regex_pattern_remove_all:pressed {\n"
+"QPushButton#button_r"
+                        "egex_pattern_remove_all:pressed {\n"
 "    background-color: #612b2b;\n"
 "}\n"
 "\n"
@@ -76,8 +89,7 @@ class Ui_MainWindow(object):
 "    background-color: #813939;\n"
 "}\n"
 "\n"
-"QPushButton#button_search_result_clear_result"
-                        "s:pressed {\n"
+"QPushButton#button_search_result_clear_results:pressed {\n"
 "    background-color: #612b2b;\n"
 "}\n"
 "\n"
@@ -112,15 +124,15 @@ class Ui_MainWindow(object):
 "    color: #999999;\n"
 "}\n"
 "\n"
-"/* Line Edits (text input fields) */\n"
+"/* Line Ed"
+                        "its (text input fields) */\n"
 "QLineEdit {\n"
 "    background-color: #252526;\n"
 "    border: 1px solid #5C5C60;\n"
 "    padding: 3px; /* Reduced padding */\n"
 "    border-radius: 4px;\n"
 "    selection-background-color: #0078D7;\n"
-""
-                        "    selection-color: #FFFFFF;\n"
+"    selection-color: #FFFFFF;\n"
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
@@ -151,7 +163,8 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QRadioButton::indicator:checked {\n"
-"    background-color: #0078D7;\n"
+"    backgroun"
+                        "d-color: #0078D7;\n"
 "    border: 1px solid #0078D7;\n"
 "}\n"
 "\n"
@@ -162,8 +175,7 @@ class Ui_MainWindow(object):
 "    background: #3E3E42;\n"
 "    border-radius: 3px;\n"
 "}\n"
-""
-                        "\n"
+"\n"
 "QSlider::handle:horizontal {\n"
 "    background: #F0F0F0;\n"
 "    border: 1px solid #5C5C60;\n"
@@ -199,7 +211,8 @@ class Ui_MainWindow(object):
 "    margin: 0px 0px 0px 0px;\n"
 "}\n"
 "\n"
-"QScrollBar::handle:vertical {\n"
+"QScrollBar"
+                        "::handle:vertical {\n"
 "    background: #5C5C60;\n"
 "    min-height: 20px;\n"
 "    border-radius: 5px;\n"
@@ -210,8 +223,7 @@ class Ui_MainWindow(object):
 "    min-width: 20px;\n"
 "    border-radius: 5px;\n"
 "}\n"
-""
-                        "\n"
+"\n"
 "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,\n"
 "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {\n"
 "    border: none;\n"
@@ -241,7 +253,8 @@ class Ui_MainWindow(object):
 "    background-color: #252526;\n"
 "    border: 1px solid #5C5C60;\n"
 "    selection-background-color: #0078D7;\n"
-"    selection-color: #FFFFFF;\n"
+"    selection-color: #F"
+                        "FFFFF;\n"
 "}\n"
 "\n"
 "    QListWidget {\n"
@@ -250,8 +263,7 @@ class Ui_MainWindow(object):
 "        background-color: #2d2d30;\n"
 "        color: #ffffff;\n"
 "        alternate-background-color: #323233;\n"
-"        sel"
-                        "ection-background-color: #0078d4;\n"
+"        selection-background-color: #0078d4;\n"
 "    }\n"
 "\n"
 "/* QFrame */\n"
@@ -505,6 +517,7 @@ class Ui_MainWindow(object):
         self.list_widget_regex.setMinimumSize(QSize(0, 150))
         self.list_widget_regex.setMaximumSize(QSize(16777215, 16777215))
         self.list_widget_regex.setStyleSheet(u"")
+        self.list_widget_regex.setAlternatingRowColors(True)
         self.list_widget_regex.setResizeMode(QListView.ResizeMode.Fixed)
 
         self.verticalLayout_item_widget.addWidget(self.list_widget_regex)

@@ -34,6 +34,18 @@ QWidget {
     font-size: 10pt;
 }
 
+/* QMenu */
+QMenu {
+    background-color: #3E3E42;
+    border: 1px solid #5C5C60;
+    color: #F0F0F0;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #393d81;
+}
+
 /* Push Buttons */
 QPushButton {
     background-color: #3E3E42;
@@ -760,6 +772,9 @@ QFrame#output_frame {
              </property>
              <property name="styleSheet">
               <string notr="true"/>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
              </property>
              <property name="resizeMode">
               <enum>QListView::ResizeMode::Fixed</enum>
