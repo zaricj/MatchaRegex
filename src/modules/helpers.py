@@ -71,12 +71,13 @@ class HelperMethods:
             folder_path (str): Folder path to open in the file system manager.
         """
         try:
-            path = Path(folder_path)
-            if sys.platform == "win32":
-                os.startfile(path)
-            else:
-                opener = "open" if sys.platform == "darwin" else "xdg-open"
-                subprocess.call([opener, path])
+            if folder_path != "":
+                path = Path(folder_path)
+                if sys.platform == "win32":
+                    os.startfile(path)
+                else:
+                    opener = "open" if sys.platform == "darwin" else "xdg-open"
+                    subprocess.call([opener, path])
         except Exception as ex:
             msg: str = f"Exception {type(ex).__name__}, could not open directory in file system manager, error message: {str(ex)}"
             self.signals.program_output_text.emit(msg)
