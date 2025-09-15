@@ -280,6 +280,8 @@ class Ui_MainWindow(object):
         self.actionRegex_101.setObjectName(u"actionRegex_101")
         self.actionOpen_Input_Folder = QAction(MainWindow)
         self.actionOpen_Input_Folder.setObjectName(u"actionOpen_Input_Folder")
+        self.actionRegex_Cheatsheet = QAction(MainWindow)
+        self.actionRegex_Cheatsheet.setObjectName(u"actionRegex_Cheatsheet")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.centralwidget.setStyleSheet(u"\n"
@@ -812,6 +814,7 @@ class Ui_MainWindow(object):
         self.menuOpen.addAction(self.actionOpen_Input_Folder)
         self.menuOpen.addAction(self.actionOpen_Output_Folder)
         self.menuHelp.addAction(self.actionRegex_101)
+        self.menuHelp.addAction(self.actionRegex_Cheatsheet)
 
         self.retranslateUi(MainWindow)
 
@@ -827,6 +830,7 @@ class Ui_MainWindow(object):
         self.actionOpen_Output_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Output Folder", None))
         self.actionRegex_101.setText(QCoreApplication.translate("MainWindow", u"Regex 101", None))
         self.actionOpen_Input_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Input Folder", None))
+        self.actionRegex_Cheatsheet.setText(QCoreApplication.translate("MainWindow", u"Regex Cheatsheet", None))
         self.title_label.setText(QCoreApplication.translate("MainWindow", u"Log File Search & Analysis", None))
         self.section_label_1.setText(QCoreApplication.translate("MainWindow", u"Source Configuration", None))
         self.label_files_folder.setText(QCoreApplication.translate("MainWindow", u"Folder Path:", None))
@@ -861,7 +865,7 @@ class Ui_MainWindow(object):
         self.section_label_4.setText(QCoreApplication.translate("MainWindow", u"Search Results & Configuration", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
         self.button_limit_rows.setText(QCoreApplication.translate("MainWindow", u"Limit Rows", None))
-        self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search (^ and $ match start/end of line)", None))
+        self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search - (^ and $ match start/end of line)", None))
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
         self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))

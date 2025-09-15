@@ -1153,7 +1153,7 @@ QFrame#output_frame {
            <item>
             <widget class="QCheckBox" name="checkbox_multiline_search">
              <property name="text">
-              <string>Enable multiline regex search (^ and $ match start/end of line)</string>
+              <string>Enable multiline regex search - (^ and $ match start/end of line)</string>
              </property>
             </widget>
            </item>
@@ -1295,6 +1295,7 @@ QFrame#output_frame {
      <string>Help</string>
     </property>
     <addaction name="actionRegex_101"/>
+    <addaction name="actionRegex_Cheatsheet"/>
    </widget>
    <addaction name="menuOpen"/>
    <addaction name="menuHelp"/>
@@ -1323,6 +1324,11 @@ QFrame#output_frame {
   <action name="actionOpen_Input_Folder">
    <property name="text">
     <string>Open Input Folder</string>
+   </property>
+  </action>
+  <action name="actionRegex_Cheatsheet">
+   <property name="text">
+    <string>Regex Cheatsheet</string>
    </property>
   </action>
  </widget>
