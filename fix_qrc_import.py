@@ -9,7 +9,7 @@ def fix_qrc_import():
     cwd = Path(__file__).parent
     print(cwd)
     
-    ui_file_path = cwd / "resources"/ "interface" /"LogSearcherUI_ui.py"
+    ui_file_path = cwd / "src" / "resources"/ "interface" /"LogSearcherUI_ui.py"
     print(f"UI File Path: {ui_file_path}")
     
     path = ui_file_path
@@ -31,4 +31,5 @@ def fix_qrc_import():
     if modified:
         with open(path, "w") as file:
             file.writelines(lines)
-            
+
+fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.

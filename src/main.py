@@ -1,10 +1,8 @@
 # File: main.py 
 
-# Fix for the import
-from fix_qrc_import import fix_qrc_import
+from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 
 from PySide6.QtGui import QPixmap
 
@@ -22,15 +20,14 @@ from PySide6.QtCore import (
     QSettings,
     QIODevice,
 )
+
 import sys
 from pathlib import Path
-
-fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
         super().__init__()
-
+    
         # Create and set up the UI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
