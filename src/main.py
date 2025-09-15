@@ -1,4 +1,7 @@
 # File: main.py 
+
+# Fix for the import
+from fix_qrc_import import fix_qrc_import
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
@@ -22,7 +25,6 @@ from PySide6.QtCore import (
 import sys
 from pathlib import Path
 
-from fix_qrc_import import fix_qrc_import
 fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
@@ -153,7 +155,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.ui.line_edit_regex.clear()
                 self.ui.statusbar.showMessage(f"Added {regex_input} regex pattern to the list.", 5000)
             else:
-                QMessageBox.information(self, "Input Warning", "Please enter at least one regex pattern to the active search patterns list.")
+                QMessageBox.information(self, "Input Warning", "Please enter a regex pattern first in the input field.")
         except Exception as ex:
             QMessageBox.critical(self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {str(ex)}")
     
