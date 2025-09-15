@@ -1,7 +1,9 @@
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 from PySide6.QtWidgets import QFileDialog, QLineEdit
 from PySide6.QtCore import QObject, Signal
-
+import os
+import sys
+import subprocess
 from pathlib import Path
 
 
@@ -61,3 +63,20 @@ class HelperMethods:
                 files = list(path.glob('*.*'))
                 if len(files) > 0:
                     self.signals.statusbar_show_message.emit(f"Selected folder: {folder_path} | Total files: {len(files)}", 10000)
+                    
+    def open_dir_in_file_manager(self, folder_path: str):
+        """Opens the specified folder path in the file system manager. OS cross-platform independent, support Windows, Linux and macOS.  
+
+        Args:
+            folder_path (str): Folder path to open in the file system manager.
+        """
+        try:
+            path = Path(folder_path)
+            if sys.platform == "win32":
+                os.startfile(path)
+            else:
+                opener = "open" if sys.platform == "darwin" else "xdg-open"
+                subprocess.call([opener, path])
+        except Exception as ex:
+            msg: str = f"Exception {type(ex).__name__}, could not open directory in file system manager, error message: {str(ex)}"
+            self.signals.program_output_text.emit(msg)

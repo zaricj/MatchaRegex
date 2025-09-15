@@ -41,6 +41,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
         self._active_worker = None
         self.regex_patterns: list[str] = []
+        self.output_file_path: str = ""
         
         # Current working dir
         cwd = Path(__file__).parent
@@ -106,7 +107,20 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             QMessageBox.critical(
                 self, "Theme load error", f"Failed to load theme: {str(ex)}"
             )
-        
+    
+    # === Menu bar slots === #
+    #TODO for slots on_openOutputDirectory and on_openInputDirectory, need to perform a check, when directory = "", it opens the root folder of the main.py.
+    
+    @Slot()
+    def on_openInputDirectory(self):
+        directory: str = self.ui.line_edit_files_folder.text()
+        self.helper.open_dir_in_file_manager(directory)
+
+    @Slot()
+    def on_openOutputDirectory(self):
+        directory: str = self.output_file_path
+        self.helper.open_dir_in_file_manager(directory)
+    
     # === App Methods & Logic === #
     
     @Slot()
@@ -233,13 +247,13 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             QMessageBox.information(self, "Export Information", "No results to export.")
             return
         
-        output_file_path, _ = QFileDialog.getSaveFileName(
+        self.output_file_path, _ = QFileDialog.getSaveFileName(
             self, 
             "Export Result", 
             "Regex_Search_Result", 
             "Excel Files (*.xlsx)"
         )
-        if output_file_path:
+        if self.output_file_path:
             # Get headers
             headers = [table.horizontalHeaderItem(col).text() for col in range(col_count)]
 
@@ -254,7 +268,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
             from modules.excel_exporter import ExcelExporterThread
 
-            excel_exporter_thread = ExcelExporterThread(data, headers, output_file_path, self.app_icon)
+            excel_exporter_thread = ExcelExporterThread(data, headers, self.output_file_path, self.app_icon)
             self.connect_excel_exporter_signals(excel_exporter_thread)
             self.thread_pool.start(excel_exporter_thread)
         else:

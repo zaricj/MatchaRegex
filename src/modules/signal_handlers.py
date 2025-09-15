@@ -164,7 +164,10 @@ class SignalHandlerMixin:
     
     def connect_menu_bar_actions(self):
         self.ui.actionRegex_101.triggered.connect(lambda: webbrowser.open("https://regex101.com"))
-        
+        self.ui.actionRegex_Cheatsheet.triggered.connect(lambda: webbrowser.open("https://regexlearn.com/cheatsheet"))
+        self.ui.actionOpen_Input_Folder.triggered.connect(self.on_openInputDirectory)
+        self.ui.actionOpen_Output_Folder.triggered.connect(self.on_openOutputDirectory)
+
     def connect_ui_events(self):
         """Connect all UI element events to their handlers"""
         
