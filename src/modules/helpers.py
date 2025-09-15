@@ -78,6 +78,8 @@ class HelperMethods:
                 else:
                     opener = "open" if sys.platform == "darwin" else "xdg-open"
                     subprocess.call([opener, path])
+            else:
+                self.signals.statusbar_show_message.emit("Please set the folder path in the specific input field first!")
         except Exception as ex:
             msg: str = f"Exception {type(ex).__name__}, could not open directory in file system manager, error message: {str(ex)}"
             self.signals.program_output_text.emit(msg)
