@@ -761,7 +761,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>150</height>
+               <height>100</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -981,7 +981,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>80</height>
+               <height>60</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -1153,7 +1153,7 @@ QFrame#output_frame {
            <item>
             <widget class="QCheckBox" name="checkbox_multiline_search">
              <property name="text">
-              <string>Enable multiline regex search</string>
+              <string>Enable multiline regex search (^ and $ match start/end of line)</string>
              </property>
             </widget>
            </item>
@@ -1213,7 +1213,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>180</height>
+               <height>100</height>
               </size>
              </property>
              <attribute name="verticalHeaderCascadingSectionResizes">
