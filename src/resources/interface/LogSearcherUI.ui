@@ -761,7 +761,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>150</height>
+               <height>100</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -981,7 +981,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>80</height>
+               <height>60</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -1153,7 +1153,7 @@ QFrame#output_frame {
            <item>
             <widget class="QCheckBox" name="checkbox_multiline_search">
              <property name="text">
-              <string>Enable multiline regex search</string>
+              <string>Enable multiline regex search - (^ and $ match start/end of line)</string>
              </property>
             </widget>
            </item>
@@ -1213,7 +1213,7 @@ QFrame#output_frame {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>180</height>
+               <height>100</height>
               </size>
              </property>
              <attribute name="verticalHeaderCascadingSectionResizes">
@@ -1295,21 +1295,9 @@ QFrame#output_frame {
      <string>Help</string>
     </property>
     <addaction name="actionRegex_101"/>
-   </widget>
-   <widget class="QMenu" name="menuManage">
-    <property name="title">
-     <string>Manage</string>
-    </property>
-    <addaction name="actionOpen_Regex_Expression_Manager"/>
-   </widget>
-   <widget class="QMenu" name="menuAutofill">
-    <property name="title">
-     <string>Autofill</string>
-    </property>
+    <addaction name="actionRegex_Cheatsheet"/>
    </widget>
    <addaction name="menuOpen"/>
-   <addaction name="menuAutofill"/>
-   <addaction name="menuManage"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
@@ -1338,9 +1326,9 @@ QFrame#output_frame {
     <string>Open Input Folder</string>
    </property>
   </action>
-  <action name="actionOpen_Regex_Expression_Manager">
+  <action name="actionRegex_Cheatsheet">
    <property name="text">
-    <string>Open Regex Expression Manager</string>
+    <string>Regex Cheatsheet</string>
    </property>
   </action>
  </widget>

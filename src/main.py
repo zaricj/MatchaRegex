@@ -1,7 +1,12 @@
 # File: main.py 
+
+from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
-from PySide6.QtGui import QPixmap, QAction
+from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+
+from PySide6.QtGui import QPixmap
+
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -16,51 +21,16 @@ from PySide6.QtCore import (
     QSettings,
     QIODevice,
 )
-from PySide6.QtGui import QGuiApplication
-
 import sys
 from pathlib import Path
-from modules.config_handler import ConfigHandler
 
-# Constants
-CURRENT_DIR = Path(__file__).parent
-GUI_CONFIG_DIRECTORY: Path = CURRENT_DIR / "config"
-GUI_CONFIG_FILE_PATH: Path = GUI_CONFIG_DIRECTORY / "config.json"
-
-# ----------------------------
-# Helpers for window state
-# ----------------------------
-def save_window_state(window: QMainWindow, settings: QSettings):
-    settings.setValue("geometry", window.saveGeometry())
-    settings.setValue("windowState", window.saveState())
-
-def restore_window_state(window: QMainWindow, settings: QSettings):
-    geometry = settings.value("geometry")
-    if geometry:
-        window.restoreGeometry(geometry)
-    state = settings.value("windowState")
-    if state:
-        window.restoreState(state)
-
-    # Clamp window into current screen space
-    screen = QGuiApplication.primaryScreen()
-    available = screen.availableGeometry()
-    win_geom = window.frameGeometry()
-
-    if not available.contains(win_geom, proper=False):
-        window.resize(
-            min(win_geom.width(), available.width()),
-            min(win_geom.height(), available.height())
-        )
-        window.move(
-            max(available.left(), min(win_geom.left(), available.right() - window.width())),
-            max(available.top(), min(win_geom.top(), available.bottom() - window.height()))
-        )
+from fix_qrc_import import fix_qrc_import
+fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
         super().__init__()
-
+    
         # Create and set up the UI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -78,6 +48,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
         self._active_worker = None
         self.regex_patterns: list[str] = []
+        self.output_file_path: str = ""
         
         self.config_handler = ConfigHandler(
             main_window=self,
@@ -171,7 +142,20 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             QMessageBox.critical(
                 self, "Theme load error", f"Failed to load theme: {str(ex)}"
             )
-        
+    
+    # === Menu bar slots === #
+    #TODO for slots on_openOutputDirectory and on_openInputDirectory, need to perform a check, when directory = "", it opens the root folder of the main.py.
+    
+    @Slot()
+    def on_openInputDirectory(self):
+        directory: str = self.ui.line_edit_files_folder.text()
+        self.helper.open_dir_in_file_manager(directory)
+
+    @Slot()
+    def on_openOutputDirectory(self):
+        directory: str = self.output_file_path
+        self.helper.open_dir_in_file_manager(directory)
+    
     # === App Methods & Logic === #
     
     # ===== Menubar events =====
@@ -223,7 +207,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.ui.line_edit_regex.clear()
                 self.ui.statusbar.showMessage(f"Added {regex_input} regex pattern to the list.", 5000)
             else:
-                QMessageBox.information(self, "Input Warning", "Please enter at least one regex pattern to the active search patterns list.")
+                QMessageBox.information(self, "Input Warning", "Please enter a regex pattern first in the input field.")
         except Exception as ex:
             QMessageBox.critical(self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {str(ex)}")
     
@@ -304,13 +288,13 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             QMessageBox.information(self, "Export Information", "No results to export.")
             return
         
-        output_file_path, _ = QFileDialog.getSaveFileName(
+        self.output_file_path, _ = QFileDialog.getSaveFileName(
             self, 
             "Export Result", 
             "Regex_Search_Result", 
             "Excel Files (*.xlsx)"
         )
-        if output_file_path:
+        if self.output_file_path:
             # Get headers
             headers = [table.horizontalHeaderItem(col).text() for col in range(col_count)]
 
@@ -325,7 +309,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
             from modules.excel_exporter import ExcelExporterThread
 
-            excel_exporter_thread = ExcelExporterThread(data, headers, output_file_path, self.app_icon)
+            excel_exporter_thread = ExcelExporterThread(data, headers, self.output_file_path, self.app_icon)
             self.connect_excel_exporter_signals(excel_exporter_thread)
             self.thread_pool.start(excel_exporter_thread)
         else:
