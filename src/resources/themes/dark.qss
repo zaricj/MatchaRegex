@@ -24,8 +24,24 @@ QPushButton {
     background-color: #3E3E42;
     border: 1px solid #5C5C60;
     color: #F0F0F0;
-    padding: 4px 8px; /* Reduced padding */
+    padding: 3px 6px; /* Reduced padding */
     border-radius: 4px;
+}
+
+QPushButton#button_remove_all:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_remove_all:pressed {
+    background-color: #612b2b;
+}
+
+QPushButton#button_remove_selected:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_remove_selected:pressed {
+    background-color: #612b2b;
 }
 
 QPushButton#button_regex_pattern_remove_selected:hover {

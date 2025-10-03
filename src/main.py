@@ -1,10 +1,7 @@
 # File: main.py 
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
-
-from PySide6.QtGui import QPixmap
-
+from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -19,11 +16,46 @@ from PySide6.QtCore import (
     QSettings,
     QIODevice,
 )
+from PySide6.QtGui import QGuiApplication
+
 import sys
 from pathlib import Path
+from modules.config_handler import ConfigHandler
 
-from fix_qrc_import import fix_qrc_import
-fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
+# Constants
+CURRENT_DIR = Path(__file__).parent
+GUI_CONFIG_DIRECTORY: Path = CURRENT_DIR / "config"
+GUI_CONFIG_FILE_PATH: Path = GUI_CONFIG_DIRECTORY / "config.json"
+
+# ----------------------------
+# Helpers for window state
+# ----------------------------
+def save_window_state(window: QMainWindow, settings: QSettings):
+    settings.setValue("geometry", window.saveGeometry())
+    settings.setValue("windowState", window.saveState())
+
+def restore_window_state(window: QMainWindow, settings: QSettings):
+    geometry = settings.value("geometry")
+    if geometry:
+        window.restoreGeometry(geometry)
+    state = settings.value("windowState")
+    if state:
+        window.restoreState(state)
+
+    # Clamp window into current screen space
+    screen = QGuiApplication.primaryScreen()
+    available = screen.availableGeometry()
+    win_geom = window.frameGeometry()
+
+    if not available.contains(win_geom, proper=False):
+        window.resize(
+            min(win_geom.width(), available.width()),
+            min(win_geom.height(), available.height())
+        )
+        window.move(
+            max(available.left(), min(win_geom.left(), available.right() - window.width())),
+            max(available.top(), min(win_geom.top(), available.bottom() - window.height()))
+        )
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
@@ -34,14 +66,24 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.ui.setupUi(self)
         
         # Setup settings
-        self.settings = QSettings("Jovan", "RegularFX")
+        self.settings = QSettings("Jovan", "MatchaRegex")
+        
+        # Restore geometry safely
+        restore_window_state(self, self.settings)
         
         from modules.regex_builder import RegexBuilder
         self.helper = HelperMethods(main_window=self)
+        self.connect_helper_method_signals(self.helper)
         self.regex_builder = RegexBuilder(main_window=self)
         
         self._active_worker = None
         self.regex_patterns: list[str] = []
+        
+        self.config_handler = ConfigHandler(
+            main_window=self,
+            config_directory=GUI_CONFIG_DIRECTORY,
+            config_file_name=GUI_CONFIG_FILE_PATH,
+        )
         
         # Current working dir
         cwd = Path(__file__).parent
@@ -57,11 +99,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         # Current app theme, saved to QSettings
         self.current_app_theme = self.settings.value("Application_Theme", "dark.qss")
         theme_path = self.dark_theme_file if self.current_app_theme == "dark.qss" else self.light_theme_file
-        
-        # Restore previous window geometry
-        geometry = self.settings.value("Window_Geometry")
-        if geometry:
-            self.restoreGeometry(geometry)
 
         self.init_thread_pool()
         self.setup_application()
@@ -71,6 +108,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         """Initialize the application components"""
         self.connect_ui_events()  # From mixin (src/modules/signal_handlers.py)
         self.connect_menu_bar_actions() # Menubar actions events connector
+        self._update_autofill_menu()
         
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -81,9 +119,35 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         print(f"Max threads: {max_threads}")
         self.thread_pool.setMaxThreadCount(max_threads)
         
+    def _update_autofill_menu(self):
+        """Update the autofill menu with custom pre-built xpaths and csv headers"""
+        self.ui.menuAutofill.clear()
+
+        custom_autofill = self.config_handler.get("custom_regex_autofill", {})
+        for key, value in custom_autofill.items():
+            action = QAction(key, self)
+            action.triggered.connect(
+                lambda checked, v=value: self._set_autofill_regex_expressions(
+                    v.get("xpath_expression", []),
+                    v.get("csv_header", [])
+                )
+            )
+            self.ui.menuAutofill.addAction(action)
+            
+    def _set_autofill_regex_expressions(self, expressions: list[str]):
+        """Adds the values for regex expressions list widget.
+
+        Args:
+            expressions (list[str]): List of regex expressions in the config
+        """
+        for xpath in expressions:
+            if xpath not in self.regex_patterns:
+                self.ui.list_widget_regex.addItem(xpath)
+                self.regex_patterns.append(xpath)
+        
     def closeEvent(self, event):
         self.settings.setValue("Application_Theme", self.current_app_theme)
-        self.settings.setValue("Window_Geometry", self.saveGeometry())
+        save_window_state(self, self.settings)
         super().closeEvent(event)
         
     def _initialize_theme(self, theme_file: str):
@@ -110,17 +174,23 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
     # === App Methods & Logic === #
     
+    # ===== Menubar events =====
+    
+    @Slot() # Opens Pre-built XPaths Manager QWidget
+    def on_openPrebuiltXPathsManager(self):
+        from widgets.modules.regex_expression_manager import AutofillRegexExpressionsWidget
+        self.w = AutofillRegexExpressionsWidget(main_window=self)
+        self.w.show()
+    
     @Slot()
     def on_filesFolderTextChanged(self):
         input_field = self.ui.line_edit_files_folder
-        self.connect_helper_method_signals(self.helper) # Connect signals from helper methods
         self.helper.input_field_text_changed(line_edit=input_field)
         
     # Button event handlers
     @Slot()
     def on_browseFolder(self): # Handler for "Browse Folder" button
         input_field = self.ui.line_edit_files_folder
-        self.connect_helper_method_signals(self.helper) # Connect signals from helper methods
         self.helper.browse_folder_path(line_edit=input_field)
     
     @Slot()
@@ -269,6 +339,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             self.ui.statusbar.showMessage("Output cleared!", 5000)
             
 if __name__ == "__main__":
+    from resources.interface.LogSearcherUI_ui import Ui_MainWindow
     # Initialize the application
     app = QApplication(sys.argv)
 

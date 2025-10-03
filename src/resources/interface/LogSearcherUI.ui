@@ -1296,7 +1296,20 @@ QFrame#output_frame {
     </property>
     <addaction name="actionRegex_101"/>
    </widget>
+   <widget class="QMenu" name="menuManage">
+    <property name="title">
+     <string>Manage</string>
+    </property>
+    <addaction name="actionOpen_Regex_Expression_Manager"/>
+   </widget>
+   <widget class="QMenu" name="menuAutofill">
+    <property name="title">
+     <string>Autofill</string>
+    </property>
+   </widget>
    <addaction name="menuOpen"/>
+   <addaction name="menuAutofill"/>
+   <addaction name="menuManage"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
@@ -1323,6 +1336,11 @@ QFrame#output_frame {
   <action name="actionOpen_Input_Folder">
    <property name="text">
     <string>Open Input Folder</string>
+   </property>
+  </action>
+  <action name="actionOpen_Regex_Expression_Manager">
+   <property name="text">
+    <string>Open Regex Expression Manager</string>
    </property>
   </action>
  </widget>

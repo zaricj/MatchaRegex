@@ -9,9 +9,9 @@ from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
 from modules.excel_exporter import ExcelExporterThread
 from modules.helpers import HelperMethods
 from modules.regex_processor import RegexProcessorThread
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 import pandas as pd
 from pathlib import Path
+from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 
 class SignalHandlerMixin:
     """Mixin class to handle all signal connections and slot methods"""
@@ -198,6 +198,10 @@ class SignalHandlerMixin:
         self.ui.button_search_result_clear_results.clicked.connect(self.on_clearResults)
         # Clear program output click event
         self.ui.button_clear_program_output.clicked.connect(self.onClearProgramOutput)
+        
+        # ====== MENU BAR EVENTS ======
+        
+        self.ui.actionOpen_Regex_Expression_Manager.triggered.connect(self.on_openPrebuiltXPathsManager)
     
     # ============= HELPER METHODS =============
     

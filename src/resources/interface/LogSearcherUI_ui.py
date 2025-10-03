@@ -280,6 +280,8 @@ class Ui_MainWindow(object):
         self.actionRegex_101.setObjectName(u"actionRegex_101")
         self.actionOpen_Input_Folder = QAction(MainWindow)
         self.actionOpen_Input_Folder.setObjectName(u"actionOpen_Input_Folder")
+        self.actionOpen_Regex_Expression_Manager = QAction(MainWindow)
+        self.actionOpen_Regex_Expression_Manager.setObjectName(u"actionOpen_Regex_Expression_Manager")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.centralwidget.setStyleSheet(u"\n"
@@ -795,6 +797,10 @@ class Ui_MainWindow(object):
         self.menuOpen.setObjectName(u"menuOpen")
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"menuHelp")
+        self.menuManage = QMenu(self.menubar)
+        self.menuManage.setObjectName(u"menuManage")
+        self.menuAutofill = QMenu(self.menubar)
+        self.menuAutofill.setObjectName(u"menuAutofill")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -808,10 +814,13 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.menubar.addAction(self.menuOpen.menuAction())
+        self.menubar.addAction(self.menuAutofill.menuAction())
+        self.menubar.addAction(self.menuManage.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuOpen.addAction(self.actionOpen_Input_Folder)
         self.menuOpen.addAction(self.actionOpen_Output_Folder)
         self.menuHelp.addAction(self.actionRegex_101)
+        self.menuManage.addAction(self.actionOpen_Regex_Expression_Manager)
 
         self.retranslateUi(MainWindow)
 
@@ -827,6 +836,7 @@ class Ui_MainWindow(object):
         self.actionOpen_Output_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Output Folder", None))
         self.actionRegex_101.setText(QCoreApplication.translate("MainWindow", u"Regex 101", None))
         self.actionOpen_Input_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Input Folder", None))
+        self.actionOpen_Regex_Expression_Manager.setText(QCoreApplication.translate("MainWindow", u"Open Regex Expression Manager", None))
         self.title_label.setText(QCoreApplication.translate("MainWindow", u"Log File Search & Analysis", None))
         self.section_label_1.setText(QCoreApplication.translate("MainWindow", u"Source Configuration", None))
         self.label_files_folder.setText(QCoreApplication.translate("MainWindow", u"Folder Path:", None))
@@ -867,5 +877,7 @@ class Ui_MainWindow(object):
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
         self.menuOpen.setTitle(QCoreApplication.translate("MainWindow", u"Open", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
+        self.menuManage.setTitle(QCoreApplication.translate("MainWindow", u"Manage", None))
+        self.menuAutofill.setTitle(QCoreApplication.translate("MainWindow", u"Autofill", None))
     # retranslateUi
 
