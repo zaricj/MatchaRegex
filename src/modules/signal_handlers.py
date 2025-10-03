@@ -204,7 +204,7 @@ class SignalHandlerMixin:
         
         # ====== MENU BAR EVENTS ======
         
-        self.ui.actionOpen_Regex_Expression_Manager.triggered.connect(self.on_openPrebuiltXPathsManager)
+        self.ui.actionOpen_Autofill_Regex_Manager.triggered.connect(self.on_openPrebuiltXPathsManager)
     
     # ============= HELPER METHODS =============
     

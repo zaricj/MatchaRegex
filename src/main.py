@@ -5,8 +5,7 @@ from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
 from resources.interface.LogSearcherUI_ui import Ui_MainWindow
 
-from PySide6.QtGui import QPixmap
-
+from PySide6.QtGui import QPixmap, QGuiApplication, QAction
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -24,8 +23,42 @@ from PySide6.QtCore import (
 import sys
 from pathlib import Path
 
-from fix_qrc_import import fix_qrc_import
-fix_qrc_import() # Fixes the import error, can be removed in the future when app is prod ready.
+from modules.config_handler import ConfigHandler
+
+# Constants
+CURRENT_DIR = Path(__file__).parent
+GUI_CONFIG_DIRECTORY: Path = CURRENT_DIR / "config"
+GUI_CONFIG_FILE_PATH: Path = GUI_CONFIG_DIRECTORY / "config.json"
+
+# ----------------------------
+# Helpers for window state
+# ----------------------------
+def save_window_state(window: QMainWindow, settings: QSettings):
+    settings.setValue("geometry", window.saveGeometry())
+    settings.setValue("windowState", window.saveState())
+
+def restore_window_state(window: QMainWindow, settings: QSettings):
+    geometry = settings.value("geometry")
+    if geometry:
+        window.restoreGeometry(geometry)
+    state = settings.value("windowState")
+    if state:
+        window.restoreState(state)
+
+    # Clamp window into current screen space
+    screen = QGuiApplication.primaryScreen()
+    available = screen.availableGeometry()
+    win_geom = window.frameGeometry()
+
+    if not available.contains(win_geom, proper=False):
+        window.resize(
+            min(win_geom.width(), available.width()),
+            min(win_geom.height(), available.height())
+        )
+        window.move(
+            max(available.left(), min(win_geom.left(), available.right() - window.width())),
+            max(available.top(), min(win_geom.top(), available.bottom() - window.height()))
+        )
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):

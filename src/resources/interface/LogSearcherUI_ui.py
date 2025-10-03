@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
     QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
     QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout,
     QWidget)
-import LogSearcher_resource_rc
+from resources.interface.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -282,6 +282,8 @@ class Ui_MainWindow(object):
         self.actionOpen_Input_Folder.setObjectName(u"actionOpen_Input_Folder")
         self.actionRegex_Cheatsheet = QAction(MainWindow)
         self.actionRegex_Cheatsheet.setObjectName(u"actionRegex_Cheatsheet")
+        self.actionOpen_Autofill_Regex_Manager = QAction(MainWindow)
+        self.actionOpen_Autofill_Regex_Manager.setObjectName(u"actionOpen_Autofill_Regex_Manager")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.centralwidget.setStyleSheet(u"\n"
@@ -797,6 +799,10 @@ class Ui_MainWindow(object):
         self.menuOpen.setObjectName(u"menuOpen")
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"menuHelp")
+        self.menuManage = QMenu(self.menubar)
+        self.menuManage.setObjectName(u"menuManage")
+        self.menuAutofill = QMenu(self.menubar)
+        self.menuAutofill.setObjectName(u"menuAutofill")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -811,10 +817,13 @@ class Ui_MainWindow(object):
 
         self.menubar.addAction(self.menuOpen.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
+        self.menubar.addAction(self.menuAutofill.menuAction())
+        self.menubar.addAction(self.menuManage.menuAction())
         self.menuOpen.addAction(self.actionOpen_Input_Folder)
         self.menuOpen.addAction(self.actionOpen_Output_Folder)
         self.menuHelp.addAction(self.actionRegex_101)
         self.menuHelp.addAction(self.actionRegex_Cheatsheet)
+        self.menuManage.addAction(self.actionOpen_Autofill_Regex_Manager)
 
         self.retranslateUi(MainWindow)
 
@@ -831,6 +840,7 @@ class Ui_MainWindow(object):
         self.actionRegex_101.setText(QCoreApplication.translate("MainWindow", u"Regex 101", None))
         self.actionOpen_Input_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Input Folder", None))
         self.actionRegex_Cheatsheet.setText(QCoreApplication.translate("MainWindow", u"Regex Cheatsheet", None))
+        self.actionOpen_Autofill_Regex_Manager.setText(QCoreApplication.translate("MainWindow", u"Open Regex Expression Manager", None))
         self.title_label.setText(QCoreApplication.translate("MainWindow", u"Log File Search & Analysis", None))
         self.section_label_1.setText(QCoreApplication.translate("MainWindow", u"Source Configuration", None))
         self.label_files_folder.setText(QCoreApplication.translate("MainWindow", u"Folder Path:", None))
@@ -871,5 +881,7 @@ class Ui_MainWindow(object):
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
         self.menuOpen.setTitle(QCoreApplication.translate("MainWindow", u"Open", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
+        self.menuManage.setTitle(QCoreApplication.translate("MainWindow", u"Manage", None))
+        self.menuAutofill.setTitle(QCoreApplication.translate("MainWindow", u"Autofill", None))
     # retranslateUi
 
