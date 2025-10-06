@@ -136,8 +136,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             action = QAction(key, self)
             action.triggered.connect(
                 lambda checked, v=value: self._set_autofill_regex_expressions(
-                    v.get("xpath_expression", []),
-                    v.get("csv_header", [])
+                    v.get("regex_expression", [])
                 )
             )
             self.ui.menuAutofill.addAction(action)
@@ -152,6 +151,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             if xpath not in self.regex_patterns:
                 self.ui.list_widget_regex.addItem(xpath)
                 self.regex_patterns.append(xpath)
+        self.ui.statusbar.showMessage("Loaded pre-built regex expressions!", 6000)
         
     def closeEvent(self, event):
         self.settings.setValue("Application_Theme", self.current_app_theme)
@@ -312,6 +312,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def on_clearResults(self): # Handler for clear table widget
         if self.ui.table_widget_results.columnCount() > 0:
             self.ui.table_widget_results.clearContents()
+            self.ui.table_widget_results.setRowCount(0)
             self.ui.statusbar.showMessage("Cleared results table!", 5000)
 
     @Slot()
