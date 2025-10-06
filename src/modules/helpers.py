@@ -59,11 +59,11 @@ class HelperMethods:
                         files.extend(path.glob(pattern))
                         self.signals.program_output_text.emit(f"Pattern '{pattern}' matched {len(list(path.glob(pattern)))} files.")
                 if len(files) > 0:
-                    self.signals.statusbar_show_message.emit(f"Selected folder: {folder_path} | Total files: {len(files)} | Using patterns: {file_patterns}", 10000)
+                    self.signals.statusbar_show_message.emit(f"Selected folder: {folder_path} | Total files: {len(files)} | Using patterns: {file_patterns}", 20000)
             else:
                 files = list(path.glob('*.*'))
                 if len(files) > 0:
-                    self.signals.statusbar_show_message.emit(f"Selected folder: {folder_path} | Total files: {len(files)}", 10000)
+                    self.signals.statusbar_show_message.emit(f"Selected folder: {folder_path} | Total files: {len(files)}", 20000)
                     
     def open_dir_in_file_manager(self, folder_path: str) -> None:
         """Opens the specified folder path in the file system manager. OS cross-platform independent, support Windows, Linux and macOS.  
