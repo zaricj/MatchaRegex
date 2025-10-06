@@ -2,6 +2,7 @@
 
 MatchaRegex is a desktop application for searching, analyzing, and exporting results from log files using advanced regular expressions. It features a modern UI built with PySide6 and supports dynamic regex pattern generation, named groups, and exporting results to Excel.
 
+![app-logo](docs/images/matcha-latte-logo.png)
 
 ## Features
 
