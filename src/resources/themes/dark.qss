@@ -6,6 +6,7 @@ QWidget {
     font-size: 10pt;
 }
 
+
 /* QMenu */
 QMenu {
     background-color: #3E3E42;
@@ -76,11 +77,35 @@ QPushButton#button_clear_program_output:pressed {
     background-color: #612b2b;
 }
 
+QPushButton#button_delete_config:hover {
+    background-color: #813939;
+}
+
+QPushButton#button_delete_config:pressed {
+    background-color: #612b2b;
+}
+
 QPushButton#button_search_result_export_to_csv:hover {
     background-color: #39814e;
 }
 
 QPushButton#button_search_result_export_to_csv:pressed {
+    background-color: #2b613a;
+}
+
+QPushButton#button_save_changes:hover {
+    background-color: #39814e;
+}
+
+QPushButton#button_save_changes:pressed {
+    background-color: #2b613a;
+}
+
+QPushButton#button_save_config:hover {
+    background-color: #39814e;
+}
+
+QPushButton#button_save_config:pressed {
     background-color: #2b613a;
 }
 
@@ -221,6 +246,20 @@ QListWidget::item:selected {
 
 /* QFrame */
 QFrame#output_frame {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+}
+
+/* QFrame */
+QFrame#frame {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+}
+
+/* QFrame */
+QFrame#frame_3 {
     background-color: #252526;
     border: 1px solid #3e3e42;
     border-radius: 6px;

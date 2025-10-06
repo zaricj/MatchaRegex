@@ -3,7 +3,7 @@ from PySide6.QtCore import Slot, QFile, QIODevice, QTextStream
 from PySide6.QtGui import QCloseEvent
 from pathlib import Path
 from modules.config_handler import ConfigHandler
-from widgets.AutofillRegexExpressionsWidget_ui import Ui_PreBuiltXPathsManagerWidget
+from widgets.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -32,13 +32,13 @@ DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "resources" / "images" / "dark.png"
 LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "resources" / "images" / "light.png"
 
 
-class AutofillRegexExpressionsWidget(QWidget):
+class PreBuiltRegexManagerWidget(QWidget):
     def __init__(self, main_window: "MainWindow"):
         super().__init__()
 
         self.main_window = main_window
         # Create and setup ui from .ui file
-        self.ui = Ui_PreBuiltXPathsManagerWidget() # Assuming Ui_Form is correctly imported and available
+        self.ui = Ui_PreBuiltRegexManagerWidget() # Assuming Ui_Form is correctly imported and available
         self.ui.setupUi(self)
         
         self.active_list_widget = None # Active widget tracking variable

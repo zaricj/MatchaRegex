@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'AutofillRegexExpressionsWidget.ui'
+## Form generated from reading UI file 'PreBuiltRegexManagerWidget.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.2
 ##
@@ -21,19 +21,19 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGroupBox,
     QWidget)
 from resources.interface.qrc import LogSearcher_resource_rc
 
-class Ui_PreBuiltXPathsManagerWidget(object):
-    def setupUi(self, PreBuiltXPathsManagerWidget):
-        if not PreBuiltXPathsManagerWidget.objectName():
-            PreBuiltXPathsManagerWidget.setObjectName(u"PreBuiltXPathsManagerWidget")
-        PreBuiltXPathsManagerWidget.resize(947, 675)
+class Ui_PreBuiltRegexManagerWidget(object):
+    def setupUi(self, PreBuiltRegexManagerWidget):
+        if not PreBuiltRegexManagerWidget.objectName():
+            PreBuiltRegexManagerWidget.setObjectName(u"PreBuiltRegexManagerWidget")
+        PreBuiltRegexManagerWidget.resize(949, 675)
         icon = QIcon()
         icon.addFile(u":/images/matcha-latte.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        PreBuiltXPathsManagerWidget.setWindowIcon(icon)
-        self.verticalLayout = QVBoxLayout(PreBuiltXPathsManagerWidget)
+        PreBuiltRegexManagerWidget.setWindowIcon(icon)
+        self.verticalLayout = QVBoxLayout(PreBuiltRegexManagerWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.MainHorLayout = QHBoxLayout()
         self.MainHorLayout.setObjectName(u"MainHorLayout")
-        self.groupBox_pre_built_xpaths_main = QGroupBox(PreBuiltXPathsManagerWidget)
+        self.groupBox_pre_built_xpaths_main = QGroupBox(PreBuiltRegexManagerWidget)
         self.groupBox_pre_built_xpaths_main.setObjectName(u"groupBox_pre_built_xpaths_main")
         self.verticalLayout_2 = QVBoxLayout(self.groupBox_pre_built_xpaths_main)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
@@ -127,7 +127,7 @@ class Ui_PreBuiltXPathsManagerWidget(object):
 
         self.RightSide = QVBoxLayout()
         self.RightSide.setObjectName(u"RightSide")
-        self.groupBox = QGroupBox(PreBuiltXPathsManagerWidget)
+        self.groupBox = QGroupBox(PreBuiltRegexManagerWidget)
         self.groupBox.setObjectName(u"groupBox")
         self.verticalLayout_7 = QVBoxLayout(self.groupBox)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
@@ -221,12 +221,12 @@ class Ui_PreBuiltXPathsManagerWidget(object):
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.button_remove_selected = QPushButton(PreBuiltXPathsManagerWidget)
+        self.button_remove_selected = QPushButton(PreBuiltRegexManagerWidget)
         self.button_remove_selected.setObjectName(u"button_remove_selected")
 
         self.horizontalLayout_2.addWidget(self.button_remove_selected)
 
-        self.button_remove_all = QPushButton(PreBuiltXPathsManagerWidget)
+        self.button_remove_all = QPushButton(PreBuiltRegexManagerWidget)
         self.button_remove_all.setObjectName(u"button_remove_all")
 
         self.horizontalLayout_2.addWidget(self.button_remove_all)
@@ -234,7 +234,7 @@ class Ui_PreBuiltXPathsManagerWidget(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
-        self.line = QFrame(PreBuiltXPathsManagerWidget)
+        self.line = QFrame(PreBuiltRegexManagerWidget)
         self.line.setObjectName(u"line")
         self.line.setFrameShape(QFrame.Shape.HLine)
         self.line.setFrameShadow(QFrame.Shadow.Sunken)
@@ -242,54 +242,54 @@ class Ui_PreBuiltXPathsManagerWidget(object):
         self.verticalLayout.addWidget(self.line)
 
 
-        self.retranslateUi(PreBuiltXPathsManagerWidget)
+        self.retranslateUi(PreBuiltRegexManagerWidget)
 
-        QMetaObject.connectSlotsByName(PreBuiltXPathsManagerWidget)
+        QMetaObject.connectSlotsByName(PreBuiltRegexManagerWidget)
     # setupUi
 
-    def retranslateUi(self, PreBuiltXPathsManagerWidget):
-        PreBuiltXPathsManagerWidget.setWindowTitle(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Form", None))
+    def retranslateUi(self, PreBuiltRegexManagerWidget):
+        PreBuiltRegexManagerWidget.setWindowTitle(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Settings - Regex Expression Manager", None))
 #if QT_CONFIG(tooltip)
-        PreBuiltXPathsManagerWidget.setToolTip("")
+        PreBuiltRegexManagerWidget.setToolTip("")
 #endif // QT_CONFIG(tooltip)
-        self.groupBox_pre_built_xpaths_main.setTitle(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Edit Autofill Regex Expressions", None))
-        self.label_9.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Here you can edit the custom pre-built configuration for the autofill:", None))
-        self.lable_pre_built_xpaths.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Select Config:", None))
+        self.groupBox_pre_built_xpaths_main.setTitle(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Edit Autofill Regex Expressions", None))
+        self.label_9.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Here you can edit the custom pre-built configuration for the autofill:", None))
+        self.lable_pre_built_xpaths.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Select Config:", None))
 #if QT_CONFIG(tooltip)
-        self.button_load_config.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Load the selected configuration and fill the two listboxes.", None))
+        self.button_load_config.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Load the selected configuration.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_load_config.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Load", None))
+        self.button_load_config.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Load", None))
 #if QT_CONFIG(tooltip)
-        self.button_delete_config.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Deletes the selected configurtion all it's values.", None))
+        self.button_delete_config.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Deletes the selected configurtion all it's values.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_delete_config.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Delete", None))
-        self.label_7.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Edit Regex Expression", None))
+        self.button_delete_config.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Delete", None))
+        self.label_7.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Edit Regex Expression", None))
 #if QT_CONFIG(tooltip)
-        self.button_save_changes.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Save changes that you made to the two listboxes.", None))
+        self.button_save_changes.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Save changes that you made to the configuration.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_save_changes.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Save Changes", None))
-        self.groupBox.setTitle(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Create Autofill Regex Expressions", None))
-        self.label.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Here you can create your own pre-built XPath Expression and CSV Headers autofill configuration:", None))
-        self.label_5.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Add Regex Expressions", None))
-        self.label_2.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Enter a Regex Expression:", None))
-        self.line_edit_xpath_expression.setPlaceholderText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Enter a Regex Expression...", None))
+        self.button_save_changes.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Save Changes", None))
+        self.groupBox.setTitle(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Create Autofill Regex Expressions", None))
+        self.label.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Here you can create your own pre-built XPath Expression and CSV Headers autofill configuration:", None))
+        self.label_5.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Add Regex Expressions", None))
+        self.label_2.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Enter a Regex Expression:", None))
+        self.line_edit_xpath_expression.setPlaceholderText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Enter a Regex Expression...", None))
 #if QT_CONFIG(tooltip)
-        self.button_add_xpath_to_list.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Add entered XPath Expression to it's listbox.", None))
+        self.button_add_xpath_to_list.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Add entered Regex Expression to it's listbox.", None))
 #endif // QT_CONFIG(tooltip)
         self.button_add_xpath_to_list.setText("")
-        self.label_4.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Enter a name for the autofill config:", None))
-        self.line_edit_config_name.setPlaceholderText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Enter a name for the configuration...", None))
+        self.label_4.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Enter a name for the autofill config:", None))
+        self.line_edit_config_name.setPlaceholderText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Enter a name for the configuration...", None))
 #if QT_CONFIG(tooltip)
-        self.button_save_config.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Save your configurtion with all items that are in the two listboxes.", None))
+        self.button_save_config.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Save your configurtion with all items that are in the two listboxes.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_save_config.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Save Config", None))
+        self.button_save_config.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Save Config", None))
 #if QT_CONFIG(tooltip)
-        self.button_remove_selected.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Removes the currently selected item in the focused listbox.", None))
+        self.button_remove_selected.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Removes the currently selected item in the focused listbox.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_remove_selected.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Remove Selected", None))
+        self.button_remove_selected.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Remove Selected", None))
 #if QT_CONFIG(tooltip)
-        self.button_remove_all.setToolTip(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Removes all items in the focused listbox.", None))
+        self.button_remove_all.setToolTip(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Removes all items in the focused listbox.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_remove_all.setText(QCoreApplication.translate("PreBuiltXPathsManagerWidget", u"Remove All", None))
+        self.button_remove_all.setText(QCoreApplication.translate("PreBuiltRegexManagerWidget", u"Remove All", None))
     # retranslateUi
 

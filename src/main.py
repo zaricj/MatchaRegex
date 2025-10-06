@@ -25,6 +25,10 @@ from pathlib import Path
 
 from modules.config_handler import ConfigHandler
 
+from fix_qrc_import import fix_qrc_import
+
+fix_qrc_import()  # Fixes the import error that appears after every ui file changed in Qt Designer.
+
 # Constants
 CURRENT_DIR = Path(__file__).parent
 GUI_CONFIG_DIRECTORY: Path = CURRENT_DIR / "config"
@@ -195,8 +199,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     
     @Slot() # Opens Pre-built XPaths Manager QWidget
     def on_openPrebuiltXPathsManager(self):
-        from widgets.modules.regex_expression_manager import AutofillRegexExpressionsWidget
-        self.w = AutofillRegexExpressionsWidget(main_window=self)
+        from widgets.modules.regex_expression_manager import PreBuiltRegexManagerWidget
+        self.w = PreBuiltRegexManagerWidget(main_window=self)
         self.w.show()
     
     @Slot()
