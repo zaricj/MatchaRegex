@@ -1297,8 +1297,21 @@ QFrame#output_frame {
     <addaction name="actionRegex_101"/>
     <addaction name="actionRegex_Cheatsheet"/>
    </widget>
+   <widget class="QMenu" name="menuManage">
+    <property name="title">
+     <string>Manage</string>
+    </property>
+    <addaction name="actionOpen_Autofill_Regex_Manager"/>
+   </widget>
+   <widget class="QMenu" name="menuAutofill">
+    <property name="title">
+     <string>Autofill</string>
+    </property>
+   </widget>
    <addaction name="menuOpen"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuAutofill"/>
+   <addaction name="menuManage"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="styleSheet">
@@ -1329,6 +1342,11 @@ QFrame#output_frame {
   <action name="actionRegex_Cheatsheet">
    <property name="text">
     <string>Regex Cheatsheet</string>
+   </property>
+  </action>
+  <action name="actionOpen_Autofill_Regex_Manager">
+   <property name="text">
+    <string>Open Regex Expression Manager</string>
    </property>
   </action>
  </widget>

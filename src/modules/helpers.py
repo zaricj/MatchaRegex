@@ -47,6 +47,7 @@ class HelperMethods:
             
             files = []
             file_patterns = self.ui.line_edit_file_pattern.text().strip().split(",")
+            print(f"Number of file patterns: {len(file_patterns)}")
 
             # Fixed: Check if file_patterns is not empty and contains valid patterns
             if file_patterns and file_patterns != ['']:
