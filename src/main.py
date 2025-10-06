@@ -177,7 +177,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             )
     
     # === Menu bar slots === #
-    #TODO for slots on_openOutputDirectory and on_openInputDirectory, need to perform a check, when directory = "", it opens the root folder of the main.py.
+    # TODO for slots on_openOutputDirectory and on_openInputDirectory, need to perform a check, when directory = "", it opens the root folder of the main.py.
     
     @Slot()
     def on_openInputDirectory(self):

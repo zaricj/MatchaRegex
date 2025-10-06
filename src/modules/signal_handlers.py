@@ -52,7 +52,7 @@ class SignalHandlerMixin:
         """Handle opening URL (for opening folder)"""
         QDesktopServices.openUrl(QUrl.fromLocalFile(url))
 
-    # ====== START FINISHED SIGNAL SLOTS START====== #
+    # ====== START FINISHED SIGNAL SLOTS START ====== #
     
     @Slot(list) # For the RegexProcessorThread
     def handle_finished_regex_processor(self, results: list):
