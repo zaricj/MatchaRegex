@@ -4,6 +4,10 @@ MatchaRegex is a desktop application for searching, analyzing, and exporting res
 
 ![app-logo](docs/images/matcha-latte-logo.png)
 
+## Screenshots
+
+![App](docs/images/app.png)
+
 ## Features
 
 - **Folder Selection**: Choose a directory containing log files to search.
