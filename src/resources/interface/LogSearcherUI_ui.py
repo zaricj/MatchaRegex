@@ -694,21 +694,22 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_table_settings.addWidget(self.label_3)
 
-        self.spinBox = QSpinBox(self.results_frame)
-        self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.setMinimumSize(QSize(0, 0))
-        self.spinBox.setMinimum(1)
-        self.spinBox.setMaximum(10000)
-        self.spinBox.setValue(100)
+        self.spinbox_rows = QSpinBox(self.results_frame)
+        self.spinbox_rows.setObjectName(u"spinbox_rows")
+        self.spinbox_rows.setEnabled(False)
+        self.spinbox_rows.setMinimumSize(QSize(0, 0))
+        self.spinbox_rows.setStyleSheet(u"")
+        self.spinbox_rows.setMinimum(0)
+        self.spinbox_rows.setMaximum(10000)
+        self.spinbox_rows.setValue(0)
+        self.spinbox_rows.setDisplayIntegerBase(10)
 
-        self.horizontalLayout_table_settings.addWidget(self.spinBox)
+        self.horizontalLayout_table_settings.addWidget(self.spinbox_rows)
 
-        self.button_limit_rows = QPushButton(self.results_frame)
-        self.button_limit_rows.setObjectName(u"button_limit_rows")
-        self.button_limit_rows.setCheckable(False)
-        self.button_limit_rows.setChecked(False)
+        self.checkbox_limit_rows = QCheckBox(self.results_frame)
+        self.checkbox_limit_rows.setObjectName(u"checkbox_limit_rows")
 
-        self.horizontalLayout_table_settings.addWidget(self.button_limit_rows)
+        self.horizontalLayout_table_settings.addWidget(self.checkbox_limit_rows)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
@@ -781,7 +782,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1206, 26))
+        self.menubar.setGeometry(QRect(0, 0, 1206, 27))
         self.menubar.setStyleSheet(u"\n"
 "     QMenuBar {\n"
 "         background-color: #2d2d30;\n"
@@ -874,7 +875,7 @@ class Ui_MainWindow(object):
         self.progress_bar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.section_label_4.setText(QCoreApplication.translate("MainWindow", u"Search Results & Configuration", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
-        self.button_limit_rows.setText(QCoreApplication.translate("MainWindow", u"Limit Rows", None))
+        self.checkbox_limit_rows.setText(QCoreApplication.translate("MainWindow", u"Limit Rows", None))
         self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search - (^ and $ match start/end of line)", None))
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
         self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
