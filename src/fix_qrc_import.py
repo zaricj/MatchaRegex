@@ -35,3 +35,4 @@ def fix_qrc_import():
                 file.writelines(lines)
 
 # Fixes the import error, can be removed in the future when app is prod ready.
+fix_qrc_import()
