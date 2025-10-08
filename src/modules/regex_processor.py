@@ -14,7 +14,7 @@ class RegexProcessorSignals(QObject):
 
 class RegexProcessorThread(QRunnable):
     def __init__(self, operation: str, regex_patterns: list = None, folder_path: Path = None, 
-                file_patterns: list[str] = None, multiline: bool = False):
+                file_patterns: list[str] = None, multiline: bool = False, max_rows: int = 0):
         super().__init__()
         self.signals = RegexProcessorSignals()
         self.operation = operation
@@ -22,6 +22,7 @@ class RegexProcessorThread(QRunnable):
         self.folder_path = folder_path
         self.file_patterns = file_patterns if file_patterns is not None else []
         self.multiline = multiline
+        self.max_rows = max_rows  # Default to 0 (no limit)
         self.setAutoDelete(True)
 
     @Slot()
@@ -95,6 +96,10 @@ class RegexProcessorThread(QRunnable):
                                 else:
                                     result[match_col] = match.group(0) or ""
                                 results.append(result)
+                                # Limit results early if max_rows is set and greater than 0
+                                if self.max_rows > 0 and len(results) >= self.max_rows:
+                                    self.signals.program_output_text.emit(f"Reached result limit of {self.max_rows}")
+                                    return results
                     else:
                         # Line-by-line processing
                         for line_number, line in enumerate(f, start=1):
@@ -113,6 +118,10 @@ class RegexProcessorThread(QRunnable):
                                         else:
                                             result[match_col] = match.group(0) or ""
                                         results.append(result)
+                                        # Limit results early if max_rows is set and greater than 0
+                                        if self.max_rows > 0 and len(results) >= self.max_rows:
+                                            self.signals.program_output_text.emit(f"Reached result limit of {self.max_rows}")
+                                            return results
                                 except Exception:
                                     # Silently continue on regex errors for speed
                                     continue
@@ -128,6 +137,13 @@ class RegexProcessorThread(QRunnable):
 
         self.signals.program_output_text.emit(f"Processed {total} files, {len(results)} matches found")
         return results
+    
+    def limit_results(self, results: list[dict[str, Any]], max_rows: int) -> list[dict[str, Any]]:
+        """Limit the number of results to max_rows."""
+        if max_rows > 0 and len(results) > max_rows:
+            self.signals.program_output_text.emit(f"Limiting results to first {max_rows} rows")
+            return results[:max_rows]
+        return results
 
     def search_files(self) -> list[dict[str, Any]]:
         """Search files using regex patterns."""
@@ -136,7 +152,7 @@ class RegexProcessorThread(QRunnable):
             
         if not self.regex_patterns:
             raise ValueError("No regex patterns provided. Exiting.")
-            
+        
         # More efficient file gathering
         files = []
         if self.file_patterns and any(fp.strip() for fp in self.file_patterns):
@@ -170,6 +186,7 @@ class RegexProcessorThread(QRunnable):
                 raise ValueError(f"Invalid regex pattern '{regex}': {e}")
         
         self.signals.program_output_text.emit("Starting file processing")
+        
         results = self.process_files(files, compiled_patterns, pattern_group_names)
         
         return results

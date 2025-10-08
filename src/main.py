@@ -25,9 +25,6 @@ from pathlib import Path
 
 from modules.config_handler import ConfigHandler
 
-from fix_qrc_import import fix_qrc_import
-
-fix_qrc_import()  # Fixes the import error that appears after every ui file changed in Qt Designer.
 
 # Constants
 CURRENT_DIR = Path(__file__).parent
@@ -297,11 +294,13 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 regex_patterns=regex_patterns,
                 folder_path=folder_path,
                 file_patterns=file_patterns,
-                multiline=multiline_search)
+                multiline=multiline_search,
+                max_rows = self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
+            )
             
             self._active_worker = regex_processor_thread
             
-            self.ui.program_output.append("Starting thread")
+            self.ui.program_output.append("Starting worker thread...")
             self.connect_regex_processor_signals(regex_processor_thread) # Connected signals and slots
             self.thread_pool.start(regex_processor_thread)
             
@@ -359,6 +358,15 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         if len(self.ui.program_output.toPlainText()) > 0:
             self.ui.program_output.clear()
             self.ui.statusbar.showMessage("Output cleared!", 5000)
+            
+    @Slot()
+    def onCheckBoxCheckedLimitRows(self):
+        """Enable/Disable the max rows input field based on the checkbox state."""
+        if self.ui.checkbox_limit_rows.isChecked():
+            self.ui.spinbox_rows.setEnabled(True)
+        else:
+            self.ui.spinbox_rows.setEnabled(False)
+            self.ui.spinbox_rows.setValue(0)  # Reset to default value
             
 if __name__ == "__main__":
     from resources.interface.LogSearcherUI_ui import Ui_MainWindow

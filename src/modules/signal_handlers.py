@@ -201,6 +201,8 @@ class SignalHandlerMixin:
         self.ui.button_search_result_clear_results.clicked.connect(self.on_clearResults)
         # Clear program output click event
         self.ui.button_clear_program_output.clicked.connect(self.onClearProgramOutput)
+        # Checkbox limit rows checked/unchecked event
+        self.ui.checkbox_limit_rows.stateChanged.connect(self.onCheckBoxCheckedLimitRows)
         
         # ====== MENU BAR EVENTS ======
         

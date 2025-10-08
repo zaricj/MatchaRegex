@@ -124,6 +124,13 @@ QPushButton:disabled {
     color: #999999;
 }
 
+/* QSpinBox */
+QSpinBox:disabled {
+    background-color: #3E3E42;
+    border: 1px solid #5C5C60;
+    color: #999999;
+    }
+
 /* Line Edits (text input fields) */
 QLineEdit {
     background-color: #252526;
