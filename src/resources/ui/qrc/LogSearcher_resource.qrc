@@ -1,5 +1,7 @@
 <RCC>
   <qresource>
+    <file>images/dropdown_arrow_dark_14x14.png</file>
+    <file>images/dropdown_arrow_light_14x14.png</file>
     <file>images/checkmark.png</file>
     <file>images/matcha-latte.png</file>
     <file>images/export-to-file.png</file>
