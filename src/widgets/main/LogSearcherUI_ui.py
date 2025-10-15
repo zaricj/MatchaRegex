@@ -8,16 +8,21 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
-    QSize, Qt)
-from PySide6.QtGui import (QAction, QFont, QIcon)
-from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame,
-    QHBoxLayout, QLabel, QLineEdit,
-    QListView, QListWidget, QMenu, QMenuBar, QProgressBar, QPushButton,
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QListView, QListWidget, QListWidgetItem, QMainWindow,
+    QMenu, QMenuBar, QProgressBar, QPushButton,
     QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
-    QTableWidget, QTextEdit, QVBoxLayout,
+    QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout,
     QWidget)
-
 from resources.ui.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
@@ -573,32 +578,13 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.section_label_program_output)
 
-        self.button_clear_program_output = QPushButton(self.output_frame)
-        self.button_clear_program_output.setObjectName(u"button_clear_program_output")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.button_clear_program_output.sizePolicy().hasHeightForWidth())
-        self.button_clear_program_output.setSizePolicy(sizePolicy4)
-        font2 = QFont()
-        font2.setFamilies([u"Segoe UI"])
-        font2.setPointSize(10)
-        font2.setBold(False)
-        font2.setItalic(False)
-        font2.setUnderline(False)
-        self.button_clear_program_output.setFont(font2)
-        self.button_clear_program_output.setMouseTracking(True)
-        self.button_clear_program_output.setFlat(True)
-
-        self.horizontalLayout_3.addWidget(self.button_clear_program_output)
-
         self.label_font_size_program_output = QLabel(self.output_frame)
         self.label_font_size_program_output.setObjectName(u"label_font_size_program_output")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.label_font_size_program_output.sizePolicy().hasHeightForWidth())
-        self.label_font_size_program_output.setSizePolicy(sizePolicy5)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.label_font_size_program_output.sizePolicy().hasHeightForWidth())
+        self.label_font_size_program_output.setSizePolicy(sizePolicy4)
 
         self.horizontalLayout_3.addWidget(self.label_font_size_program_output)
 
@@ -611,11 +597,30 @@ class Ui_MainWindow(object):
         self.combobox_font_size_program_output.addItem("")
         self.combobox_font_size_program_output.addItem("")
         self.combobox_font_size_program_output.setObjectName(u"combobox_font_size_program_output")
-        sizePolicy4.setHeightForWidth(self.combobox_font_size_program_output.sizePolicy().hasHeightForWidth())
-        self.combobox_font_size_program_output.setSizePolicy(sizePolicy4)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.combobox_font_size_program_output.sizePolicy().hasHeightForWidth())
+        self.combobox_font_size_program_output.setSizePolicy(sizePolicy5)
         self.combobox_font_size_program_output.setMaximumSize(QSize(60, 16777215))
 
         self.horizontalLayout_3.addWidget(self.combobox_font_size_program_output)
+
+        self.button_clear_program_output = QPushButton(self.output_frame)
+        self.button_clear_program_output.setObjectName(u"button_clear_program_output")
+        sizePolicy5.setHeightForWidth(self.button_clear_program_output.sizePolicy().hasHeightForWidth())
+        self.button_clear_program_output.setSizePolicy(sizePolicy5)
+        font2 = QFont()
+        font2.setFamilies([u"Segoe UI"])
+        font2.setPointSize(10)
+        font2.setBold(False)
+        font2.setItalic(False)
+        font2.setUnderline(False)
+        self.button_clear_program_output.setFont(font2)
+        self.button_clear_program_output.setMouseTracking(True)
+        self.button_clear_program_output.setFlat(True)
+
+        self.horizontalLayout_3.addWidget(self.button_clear_program_output)
 
 
         self.verticalLayout_program_output.addLayout(self.horizontalLayout_3)
@@ -713,10 +718,39 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_table_widget.addLayout(self.horizontalLayout_table_settings)
 
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.checkbox_multiline_search = QCheckBox(self.results_frame)
         self.checkbox_multiline_search.setObjectName(u"checkbox_multiline_search")
 
-        self.verticalLayout_table_widget.addWidget(self.checkbox_multiline_search)
+        self.horizontalLayout.addWidget(self.checkbox_multiline_search)
+
+        self.line = QFrame(self.results_frame)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.Shape.VLine)
+        self.line.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.horizontalLayout.addWidget(self.line)
+
+        self.checkbox_enable_parallel_processing = QCheckBox(self.results_frame)
+        self.checkbox_enable_parallel_processing.setObjectName(u"checkbox_enable_parallel_processing")
+
+        self.horizontalLayout.addWidget(self.checkbox_enable_parallel_processing)
+
+        self.button_parallel_processing_info = QPushButton(self.results_frame)
+        self.button_parallel_processing_info.setObjectName(u"button_parallel_processing_info")
+        self.button_parallel_processing_info.setMaximumSize(QSize(30, 16777215))
+        self.button_parallel_processing_info.setFont(font)
+        self.button_parallel_processing_info.setCursor(QCursor(Qt.CursorShape.WhatsThisCursor))
+        icon6 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DialogInformation))
+        self.button_parallel_processing_info.setIcon(icon6)
+        self.button_parallel_processing_info.setAutoDefault(False)
+        self.button_parallel_processing_info.setFlat(False)
+
+        self.horizontalLayout.addWidget(self.button_parallel_processing_info)
+
+
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout)
 
         self.button_start_search = QPushButton(self.results_frame)
         self.button_start_search.setObjectName(u"button_start_search")
@@ -728,9 +762,9 @@ class Ui_MainWindow(object):
         self.button_start_search.setMinimumSize(QSize(0, 0))
         self.button_start_search.setMaximumSize(QSize(16777215, 25))
         self.button_start_search.setFont(font1)
-        icon6 = QIcon()
-        icon6.addFile(u":/images/search-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.button_start_search.setIcon(icon6)
+        icon7 = QIcon()
+        icon7.addFile(u":/images/search-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_start_search.setIcon(icon7)
         self.button_start_search.setIconSize(QSize(24, 24))
 
         self.verticalLayout_table_widget.addWidget(self.button_start_search)
@@ -750,9 +784,9 @@ class Ui_MainWindow(object):
         self.button_search_result_export_to_csv = QPushButton(self.results_frame)
         self.button_search_result_export_to_csv.setObjectName(u"button_search_result_export_to_csv")
         self.button_search_result_export_to_csv.setEnabled(True)
-        icon7 = QIcon()
-        icon7.addFile(u":/images/export-to-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.button_search_result_export_to_csv.setIcon(icon7)
+        icon8 = QIcon()
+        icon8.addFile(u":/images/export-to-file.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.button_search_result_export_to_csv.setIcon(icon8)
 
         self.horizontalLayout_5.addWidget(self.button_search_result_export_to_csv)
 
@@ -825,6 +859,7 @@ class Ui_MainWindow(object):
 
         self.button_add_regex_to_list_widget.setDefault(False)
         self.button_clear_program_output.setDefault(False)
+        self.button_parallel_processing_info.setDefault(False)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -856,7 +891,6 @@ class Ui_MainWindow(object):
         self.button_regex_pattern_remove_selected.setText(QCoreApplication.translate("MainWindow", u"Remove Selected", None))
         self.button_regex_pattern_remove_all.setText(QCoreApplication.translate("MainWindow", u"Remove All", None))
         self.section_label_program_output.setText(QCoreApplication.translate("MainWindow", u"System Output", None))
-        self.button_clear_program_output.setText(QCoreApplication.translate("MainWindow", u"Clear Output", None))
         self.label_font_size_program_output.setText(QCoreApplication.translate("MainWindow", u"Font Size:", None))
         self.combobox_font_size_program_output.setItemText(0, QCoreApplication.translate("MainWindow", u"10pt", None))
         self.combobox_font_size_program_output.setItemText(1, QCoreApplication.translate("MainWindow", u"11pt", None))
@@ -866,12 +900,21 @@ class Ui_MainWindow(object):
         self.combobox_font_size_program_output.setItemText(5, QCoreApplication.translate("MainWindow", u"15pt", None))
         self.combobox_font_size_program_output.setItemText(6, QCoreApplication.translate("MainWindow", u"16pt", None))
 
+        self.button_clear_program_output.setText(QCoreApplication.translate("MainWindow", u"Clear Output", None))
         self.program_output.setPlaceholderText(QCoreApplication.translate("MainWindow", u"System output and status messages will appear here...", None))
         self.progress_bar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.section_label_4.setText(QCoreApplication.translate("MainWindow", u"Search Results & Configuration", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
         self.checkbox_limit_rows.setText(QCoreApplication.translate("MainWindow", u"Limit Rows", None))
         self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search - (^ and $ match start/end of line)", None))
+#if QT_CONFIG(tooltip)
+        self.checkbox_enable_parallel_processing.setToolTip(QCoreApplication.translate("MainWindow", u"Enables parallel processing, useful for big files.", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkbox_enable_parallel_processing.setText(QCoreApplication.translate("MainWindow", u"Enable parallel processing", None))
+#if QT_CONFIG(tooltip)
+        self.button_parallel_processing_info.setToolTip(QCoreApplication.translate("MainWindow", u"Show parallel processing help information.", None))
+#endif // QT_CONFIG(tooltip)
+        self.button_parallel_processing_info.setText("")
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
         self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
