@@ -406,6 +406,19 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         else:
             self.ui.spinbox_rows.setEnabled(False)
             self.ui.spinbox_rows.setValue(0)  # Reset to default value
+
+    @Slot()
+    def on_parallelProcessingInfo(self):
+        """Show information about parallel processing."""
+        info_text = (
+            "Parallel Processing Info:\n\n"
+            "When enabled, the application will utilize multiple threads to process files concurrently. "
+            "This can significantly speed up the search process, especially when dealing with large datasets or multiple files.\n\n"
+            "However, please note that enabling parallel processing may increase CPU and memory usage. "
+            "Ensure that your system has sufficient resources to handle the additional load.\n\n"
+            "If you encounter any issues or performance degradation, consider disabling this option."
+        )
+        QMessageBox.information(self, "Parallel Processing Information", info_text)
             
 if __name__ == "__main__":
     from widgets.main.LogSearcherUI_ui import Ui_MainWindow
