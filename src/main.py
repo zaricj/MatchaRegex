@@ -94,11 +94,11 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         cwd = Path(__file__).parent
         
         # Theme files dark & light
-        self.dark_theme_file = cwd / "resources" / "themes" / "dark.qss"
-        self.light_theme_file = cwd / "resources" / "themes" / "light.qss"
+        self.dark_theme_file = cwd / "resources" / "styles" / "dark.qss"
+        self.light_theme_file = cwd / "resources" / "styles" / "light.qss"
         
         # GUI Window Icon
-        app_icon_path = cwd / "resources" / "interface" / "qrc" / "images" / "matcha-latte.png"
+        app_icon_path = cwd / "resources" / "ui" / "qrc" / "images" / "matcha-latte.png"
         self.app_icon = QPixmap(app_icon_path.__str__())
 
         # Current app theme, saved to QSettings
@@ -121,7 +121,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
         # Optional: Set maximum thread count (default is system dependent)
         max_threads = self.thread_pool.maxThreadCount()
-        print(f"Max threads: {max_threads}")
         self.thread_pool.setMaxThreadCount(max_threads)
         
     def _update_autofill_menu(self):

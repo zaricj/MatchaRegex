@@ -3,7 +3,7 @@ from PySide6.QtCore import Slot, QFile, QIODevice, QTextStream
 from PySide6.QtGui import QCloseEvent
 from pathlib import Path
 from modules.config_handler import ConfigHandler
-from widgets.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
+from widgets.other.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -22,8 +22,8 @@ GUI_CONFIG_DIRECTORY: Path = SRC_ROOT_DIR / "config"
 GUI_CONFIG_FILE_PATH: Path = SRC_ROOT_DIR / "config" / "config.json"
 
 # Theme files
-DARK_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "themes" / "dark.qss"
-LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "themes" / "light_theme.qss"
+DARK_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "styles" / "dark.qss"
+LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "styles" / "light_theme.qss"
 
 ICON_PATH: Path = SRC_ROOT_DIR / "resources" / "icons" / "xml_256px.ico"
 
