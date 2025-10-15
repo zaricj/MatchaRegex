@@ -15,7 +15,6 @@ FILE_PATH = Path(__file__).resolve()
 
 # Get the project src directory
 SRC_ROOT_DIR = FILE_PATH.parents[2]
-print(SRC_ROOT_DIR)
 
 # Path Constants
 GUI_CONFIG_DIRECTORY: Path = SRC_ROOT_DIR / "config"
