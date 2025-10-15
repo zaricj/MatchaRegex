@@ -11,11 +11,17 @@ from modules.helpers import HelperMethods
 from modules.regex_processor import RegexProcessorThread
 import pandas as pd
 from pathlib import Path
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+from typing import TYPE_CHECKING
+
+# Avoid circular import for type checking
+if TYPE_CHECKING:
+    from widgets.main.LogSearcherUI_ui import Ui_MainWindow
+    from main import MainWindow
 
 class SignalHandlerMixin:
     """Mixin class to handle all signal connections and slot methods"""
-    ui: Ui_MainWindow
+    ui: "Ui_MainWindow"
+    main_window: "MainWindow"
     
     def __init__(self):
         super().__init__()
@@ -162,13 +168,13 @@ class SignalHandlerMixin:
         helper.signals.program_output_text.connect(self.handle_program_output)
         helper.signals.statusbar_show_message.connect(self.handle_statusbar_message)
     
-    def connect_menu_bar_actions(self):
+    def connect_menu_bar_actions(self: "MainWindow"):
         self.ui.actionRegex_101.triggered.connect(lambda: webbrowser.open("https://regex101.com"))
         self.ui.actionRegex_Cheatsheet.triggered.connect(lambda: webbrowser.open("https://regexlearn.com/cheatsheet"))
         self.ui.actionOpen_Input_Folder.triggered.connect(self.on_openInputDirectory)
         self.ui.actionOpen_Output_Folder.triggered.connect(self.on_openOutputDirectory)
 
-    def connect_ui_events(self):
+    def connect_ui_events(self: "MainWindow"):
         """Connect all UI element events to their handlers"""
         
         # ====== LINE EDIT EVENTS ======

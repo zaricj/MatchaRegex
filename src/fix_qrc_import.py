@@ -9,8 +9,8 @@ def fix_qrc_import():
     cwd = Path(__file__).parent
     print(cwd)
     
-    ui_file_path = cwd / "resources"/ "interface" / "LogSearcherUI_ui.py"
-    other = cwd / "widgets" / "PreBuiltRegexManagerWidget_ui.py"
+    ui_file_path = cwd / "widgets"/ "main" / "LogSearcherUI_ui.py"
+    other = cwd / "widgets" / "other" / "PreBuiltRegexManagerWidget_ui.py"
     print(f"UI File Path: {ui_file_path}")
     
     ui_files = [ui_file_path,other]
@@ -24,7 +24,7 @@ def fix_qrc_import():
             if "import LogSearcher_resource_rc" in line and "from resources.interface.qrc" not in line:
                 lines[i] = line.replace(
                     "import LogSearcher_resource_rc",
-                    "from resources.interface.qrc import LogSearcher_resource_rc"
+                    "from resources.ui.qrc import LogSearcher_resource_rc"
                 )
                 print("Replaced import!")
                 modified = True

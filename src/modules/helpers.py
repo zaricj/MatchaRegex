@@ -1,4 +1,4 @@
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+from widgets.main.LogSearcherUI_ui import Ui_MainWindow
 from PySide6.QtWidgets import QFileDialog, QLineEdit
 from PySide6.QtCore import QObject, Signal
 import os

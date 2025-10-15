@@ -1,9 +1,9 @@
 # File: main.py 
 
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+from widgets.main.LogSearcherUI_ui import Ui_MainWindow
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
-from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+from widgets.main.LogSearcherUI_ui import Ui_MainWindow
 
 from PySide6.QtGui import QPixmap, QGuiApplication, QAction
 from PySide6.QtWidgets import (
@@ -369,7 +369,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             self.ui.spinbox_rows.setValue(0)  # Reset to default value
             
 if __name__ == "__main__":
-    from resources.interface.LogSearcherUI_ui import Ui_MainWindow
+    from widgets.main.LogSearcherUI_ui import Ui_MainWindow
     # Initialize the application
     app = QApplication(sys.argv)
 
