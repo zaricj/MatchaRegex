@@ -22,7 +22,7 @@
    <string>MatchaRegex</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="qrc/LogSearcher_resource.qrc">
+   <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
     <normaloff>:/images/matcha-latte.png</normaloff>:/images/matcha-latte.png</iconset>
   </property>
   <property name="styleSheet">
@@ -583,7 +583,7 @@ QFrame#output_frame {
                 <string>Convert</string>
                </property>
                <property name="icon">
-                <iconset resource="qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
                </property>
                <property name="iconSize">
@@ -789,7 +789,7 @@ QFrame#output_frame {
                 <string>Remove Selected</string>
                </property>
                <property name="icon">
-                <iconset resource="qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-selected.png</normaloff>:/images/remove-selected.png</iconset>
                </property>
               </widget>
@@ -800,7 +800,7 @@ QFrame#output_frame {
                 <string>Remove All</string>
                </property>
                <property name="icon">
-                <iconset resource="qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
@@ -1191,7 +1191,7 @@ QFrame#output_frame {
               <string>Start Search</string>
              </property>
              <property name="icon">
-              <iconset resource="qrc/LogSearcher_resource.qrc">
+              <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                <normaloff>:/images/search-file.png</normaloff>:/images/search-file.png</iconset>
              </property>
              <property name="iconSize">
@@ -1235,7 +1235,7 @@ QFrame#output_frame {
                 <string>Export to Excel</string>
                </property>
                <property name="icon">
-                <iconset resource="qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/export-to-file.png</normaloff>:/images/export-to-file.png</iconset>
                </property>
               </widget>
@@ -1246,7 +1246,7 @@ QFrame#output_frame {
                 <string>Clear Results</string>
                </property>
                <property name="icon">
-                <iconset resource="qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
@@ -1354,7 +1354,7 @@ QFrame#output_frame {
   </action>
  </widget>
  <resources>
-  <include location="qrc/LogSearcher_resource.qrc"/>
+  <include location="../../resources/ui/qrc/LogSearcher_resource.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -8,21 +8,16 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
-    QIcon, QImage, QKeySequence, QLinearGradient,
-    QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMainWindow,
-    QMenu, QMenuBar, QProgressBar, QPushButton,
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
+    QSize, Qt)
+from PySide6.QtGui import (QAction, QFont, QIcon)
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame,
+    QHBoxLayout, QLabel, QLineEdit,
+    QListView, QListWidget, QMenu, QMenuBar, QProgressBar, QPushButton,
     QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
-    QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout,
+    QTableWidget, QTextEdit, QVBoxLayout,
     QWidget)
+
 from resources.ui.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
