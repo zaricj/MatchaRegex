@@ -3,8 +3,7 @@
 from widgets.main.LogSearcherUI_ui import Ui_MainWindow
 from modules.signal_handlers import SignalHandlerMixin
 from modules.helpers import HelperMethods
-from widgets.main.LogSearcherUI_ui import Ui_MainWindow
-
+from modules.config_handler import ConfigHandler
 from PySide6.QtGui import QPixmap, QGuiApplication, QAction
 from PySide6.QtWidgets import (
     QApplication,
@@ -23,7 +22,6 @@ from PySide6.QtCore import (
 import sys
 from pathlib import Path
 
-from modules.config_handler import ConfigHandler
 
 
 # Constants
@@ -304,11 +302,34 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             # Disable the button to prevent multiple searches at once
             self.ui.button_start_search.setEnabled(False)
             
+            # === This is commented out, it would be good to add a checkbox in order to enable/disable parallel processing ===
+            # TODO!: Add a checkbox to enable/disable parallel processing in the GUI! Then uncomment the code below and add a flag in order to choose between single-threaded and multi-threaded processing.
+            # if self.ui.checkbox_enable_parallel_processing.isChecked(): ---- Placeholder for the future checkbox 
+            
+            # Parallel processing version (multi-threaded) started below this line:
+            
+            # from modules.parallel_regex_processor import ParallelRegexProcessor
+            # 
+            # # Create and start the search thread
+            # parallel_processor = ParallelRegexProcessor(
+            #     thread_pool=self.thread_pool,
+            #     regex_patterns=regex_patterns,
+            #     folder_path=folder_path,
+            #     file_patterns=file_patterns,
+            #     multiline=multiline_search,
+            #     max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
+            # )
+            # 
+            # self._active_worker = parallel_processor
+            # 
+            # self.ui.program_output.append("Starting parallel worker threads...")
+            # self.connect_regex_processor_signals(parallel_processor) # Connected signals and slots
+            # parallel_processor.start()
+            
             from modules.regex_processor import RegexProcessorThread
             
             # Create and start the search thread
             regex_processor_thread = RegexProcessorThread(
-                operation='search_files', 
                 regex_patterns=regex_patterns,
                 folder_path=folder_path,
                 file_patterns=file_patterns,

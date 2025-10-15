@@ -13,11 +13,10 @@ class RegexProcessorSignals(QObject):
     finished = Signal(list)
 
 class RegexProcessorThread(QRunnable):
-    def __init__(self, operation: str, regex_patterns: list = None, folder_path: Path = None, 
+    def __init__(self, regex_patterns: list = None, folder_path: Path = None, 
                 file_patterns: list[str] = None, multiline: bool = False, max_rows: int = 0):
         super().__init__()
         self.signals = RegexProcessorSignals()
-        self.operation = operation
         self.regex_patterns = regex_patterns if regex_patterns is not None else []
         self.folder_path = folder_path
         self.file_patterns = file_patterns if file_patterns is not None else []
@@ -29,10 +28,7 @@ class RegexProcessorThread(QRunnable):
     def run(self):
         results = []
         try:
-            if self.operation == 'search_files':
-                results = self.search_files()
-            else:
-                raise ValueError(f"Unknown operation: {self.operation}")
+            results = self.search_files()
         except Exception as e:
             self.signals.message_critical.emit("Search Error", f"Thread error: {str(e)}")
         finally:
