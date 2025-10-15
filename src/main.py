@@ -77,7 +77,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         
         from modules.regex_builder import RegexBuilder
         self.helper = HelperMethods(main_window=self)
-        self.connect_helper_method_signals(self.helper)
         self.regex_builder = RegexBuilder(main_window=self)
         
         self._active_worker = None
@@ -114,6 +113,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.connect_ui_events()  # From mixin (src/modules/signal_handlers.py)
         self.connect_menu_bar_actions() # Menubar actions events connector
         self._update_autofill_menu()
+        self.connect_helper_method_signals(self.helper)
         
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -149,9 +149,27 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.regex_patterns.append(xpath)
         self.ui.statusbar.showMessage("Loaded pre-built regex expressions!", 6000)
         
-    def closeEvent(self, event):
+    def _save_app_settings(self):
+        """Saves app settings to QSettings"""
         self.settings.setValue("Application_Theme", self.current_app_theme)
         save_window_state(self, self.settings)
+        
+    def closeEvent(self, event):
+        self._save_app_settings()
+        if self._active_worker and self._active_worker.isRunning():
+            reply = QMessageBox.question(
+                self,
+                "Exit Confirmation",
+                "A task is still running. Are you sure you want to exit?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if reply == QMessageBox.No:
+                event.ignore()
+                return
+            else:
+                self._active_worker.stop()  # Assuming the worker has a stop method
+        
         super().closeEvent(event)
         
     def _initialize_theme(self, theme_file: str):
@@ -186,7 +204,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
     @Slot()
     def on_openOutputDirectory(self):
-        directory: str = self.output_file_path
+        file_path = Path(self.output_file_path)
+        directory: str = file_path.parent.__str__() if file_path.exists() else ""
         self.helper.open_dir_in_file_manager(directory)
     
     # === App Methods & Logic === #
