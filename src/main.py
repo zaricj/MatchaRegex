@@ -116,11 +116,24 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def init_thread_pool(self):
         # Initialize the thread pool
         self.thread_pool = QThreadPool()
-
+        thread_perf = self.thread_pool_calculated(performance=1)
         # Optional: Set maximum thread count (default is system dependent)
-        max_threads = self.thread_pool.maxThreadCount()
-        self.thread_pool.setMaxThreadCount(max_threads)
+        self.thread_pool.setMaxThreadCount(thread_perf) # 0 = low, 1 = medium, 2 = high
+        self.ui.statusbar.showMessage(f"Thread Pool with {thread_perf} threads initialized.", 10000)
         
+    def thread_pool_calculated(self, performance: int) -> int:
+        """Returns the calculated thread count based on the system's CPU cores."""
+        max_threads = self.thread_pool.maxThreadCount()
+        if performance == 2: # High performance
+            return max_threads
+
+        if performance == 1: # Medium performance
+            return max_threads // 2
+
+        if performance == 0: # Low performance
+            return max_threads // 4
+        
+
     def _update_autofill_menu(self):
         """Update the autofill menu with custom pre-built xpaths and csv headers"""
         self.ui.menuAutofill.clear()
@@ -304,45 +317,44 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             
             # === This is commented out, it would be good to add a checkbox in order to enable/disable parallel processing ===
             # TODO!: Add a checkbox to enable/disable parallel processing in the GUI! Then uncomment the code below and add a flag in order to choose between single-threaded and multi-threaded processing.
-            # if self.ui.checkbox_enable_parallel_processing.isChecked(): ---- Placeholder for the future checkbox 
+            if self.ui.checkbox_enable_parallel_processing.isChecked():
             
-            # Parallel processing version (multi-threaded) started below this line:
-            
-            # from modules.parallel_regex_processor import ParallelRegexProcessor
-            # 
-            # # Create and start the search thread
-            # parallel_processor = ParallelRegexProcessor(
-            #     thread_pool=self.thread_pool,
-            #     regex_patterns=regex_patterns,
-            #     folder_path=folder_path,
-            #     file_patterns=file_patterns,
-            #     multiline=multiline_search,
-            #     max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
-            # )
-            # 
-            # self._active_worker = parallel_processor
-            # 
-            # self.ui.program_output.append("Starting parallel worker threads...")
-            # self.connect_regex_processor_signals(parallel_processor) # Connected signals and slots
-            # parallel_processor.start()
-            
-            from modules.regex_processor import RegexProcessorThread
-            
-            # Create and start the search thread
-            regex_processor_thread = RegexProcessorThread(
-                regex_patterns=regex_patterns,
-                folder_path=folder_path,
-                file_patterns=file_patterns,
-                multiline=multiline_search,
-                max_rows = self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
-            )
-            
-            self._active_worker = regex_processor_thread
-            
-            self.ui.program_output.append("Starting worker thread...")
-            self.connect_regex_processor_signals(regex_processor_thread) # Connected signals and slots
-            self.thread_pool.start(regex_processor_thread)
-            
+                # Parallel processing version (multi-threaded) started below this line:
+                from modules.parallel_regex_processor import ParallelRegexProcessor
+
+                # Create and start the search thread
+                parallel_processor = ParallelRegexProcessor(
+                    thread_pool=self.thread_pool,
+                    regex_patterns=regex_patterns,
+                    folder_path=folder_path,
+                    file_patterns=file_patterns,
+                    multiline=multiline_search,
+                    max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
+                )
+
+                self._active_worker = parallel_processor
+
+                self.ui.program_output.append("Starting parallel worker threads...")
+                self.connect_regex_processor_signals(parallel_processor) # Connected signals and slots
+                parallel_processor.start()
+            else:
+                from modules.regex_processor import RegexProcessorThread
+
+                # Create and start the search thread non parallel version
+                regex_processor_thread = RegexProcessorThread(
+                    regex_patterns=regex_patterns,
+                    folder_path=folder_path,
+                    file_patterns=file_patterns,
+                    multiline=multiline_search,
+                    max_rows = self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value() > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
+                )
+
+                self._active_worker = regex_processor_thread
+
+                self.ui.program_output.append("Starting worker thread...")
+                self.connect_regex_processor_signals(regex_processor_thread) # Connected signals and slots
+                self.thread_pool.start(regex_processor_thread)
+
         except Exception as ex:
             QMessageBox.critical(self, "Search Error", f"An error occurred in search: {str(ex)}")
     
