@@ -779,6 +779,21 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_table_widget.addWidget(self.table_widget_results)
 
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.combobox_count_occurrences = QComboBox(self.results_frame)
+        self.combobox_count_occurrences.setObjectName(u"combobox_count_occurrences")
+
+        self.horizontalLayout_6.addWidget(self.combobox_count_occurrences)
+
+        self.button_count_occurrences = QPushButton(self.results_frame)
+        self.button_count_occurrences.setObjectName(u"button_count_occurrences")
+
+        self.horizontalLayout_6.addWidget(self.button_count_occurrences)
+
+
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout_6)
+
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.button_search_result_export_to_csv = QPushButton(self.results_frame)
@@ -916,6 +931,8 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.button_parallel_processing_info.setText("")
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
+        self.combobox_count_occurrences.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Choose a column to count occurrences...", None))
+        self.button_count_occurrences.setText(QCoreApplication.translate("MainWindow", u"Count Occurrences", None))
         self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
         self.menuOpen.setTitle(QCoreApplication.translate("MainWindow", u"Open", None))
