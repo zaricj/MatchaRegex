@@ -11,7 +11,7 @@ from modules.helpers import HelperMethods
 from modules.regex_processor import RegexProcessor
 import pandas as pd
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Avoid circular import for type checking
 if TYPE_CHECKING:
@@ -62,7 +62,7 @@ class SignalHandlerMixin:
     # ====== START FINISHED SIGNAL SLOTS START ====== #
 
     @Slot(list)  # For the RegexProcessorThread
-    def handle_finished_regex_processor(self, results: list):
+    def handle_finished_regex_processor(self, results: list[dict[str, Any]]):
         try:
             if results:
                 # Normalize results to ensure consistent keys
@@ -75,11 +75,12 @@ class SignalHandlerMixin:
                             result[key] = ""
                 # Create DataFrame in main thread
                 results_df = pd.DataFrame(results, dtype=str)
+                # Store current results for further processing
+                self.current_results = results
                 self.ui.program_output.append(
                     f"DataFrame created with {len(results_df)} rows, columns:\n{list(results_df.columns)}")
                 self.ui.table_widget_results.clear()
                 self._populate_results_table(results_df)
-                self.current_results = results  # Store current results for further processing
                 # Populate count occurrences combobox
                 self.ui.combobox_count_occurrences.clear()
                 self.ui.combobox_count_occurrences.addItems(

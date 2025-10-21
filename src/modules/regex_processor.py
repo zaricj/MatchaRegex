@@ -28,7 +28,7 @@ class RegexProcessor(QRunnable):
 
     @Slot()
     def run(self):
-        results = []
+        results: list[dict[str, Any]] = []
         try:
             results = self.search_files()
         except Exception as e:

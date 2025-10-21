@@ -22,3 +22,15 @@ def count_occurrences_by_key(results: list[dict[str, Any]], key_field: str) -> l
         for value, count in file_counts.items():
             summary.append({"File": file, key_field: value, "Count": count})
     return summary
+
+class DisplayCountOccurrences:
+    """
+    A class to encapsulate the counting logic.
+    """
+
+    def __init__(self, key_field: str):
+        self.key_field = key_field
+
+    def process(self, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return count_occurrences_by_key(results, self.key_field)
+    

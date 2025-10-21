@@ -339,7 +339,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
             # Disable the button to prevent multiple searches at once
             self.ui.button_start_search.setEnabled(False)
-            # === This is commented out, it would be good to add a checkbox in order to enable/disable parallel processing ===
+
             if self.ui.checkbox_enable_parallel_processing.isChecked():
 
                 # Parallel processing version (multi-threaded):
@@ -355,14 +355,16 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                     max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value(
                     ) > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
                 )
-
+                
                 self._active_worker = parallel_processor
-
+                
                 self.ui.program_output.append(
                     "Starting parallel worker threads...")
                 self.connect_regex_processor_signals(
                     parallel_processor)  # Connected signals and slots
+                
                 parallel_processor.start()
+                
             else:
                 # Non-parallel processing version (single-threaded):
                 from modules.regex_processor import RegexProcessor
@@ -382,6 +384,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.ui.program_output.append("Starting worker thread...")
                 self.connect_regex_processor_signals(
                     regex_processor_thread)  # Connected signals and slots
+                
                 self.thread_pool.start(regex_processor_thread)
 
         except Exception as ex:
@@ -479,7 +482,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             return
 
         key_field = self.ui.combobox_count_occurrences.currentText()
-        print(key_field)
 
         if not key_field:
             QMessageBox.information(
@@ -493,7 +495,10 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self, "No Data", "No occurrences found for the specified key.")
             return
 
-        print(summary)  # TODO Display the summary somehow in the ui
+        # Display the new summary of the count occurrences in the results table
+        import pandas as pd
+        summary_df = pd.DataFrame(summary, dtype=str)
+        self._populate_results_table(summary_df)
 
 
 if __name__ == "__main__":
