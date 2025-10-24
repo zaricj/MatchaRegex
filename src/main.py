@@ -120,7 +120,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self._update_autofill_menu()
         self.connect_helper_method_signals(self.helper)
         # Hide count occurrences widgets initially
-        self._set_visible_count_occurrences_widgets(False)
+        self._set_visible_of_widgets(False)
 
     def init_thread_pool(self):
         # Initialize the thread pool
@@ -355,16 +355,16 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                     max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value(
                     ) > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
                 )
-                
+
                 self._active_worker = parallel_processor
-                
+
                 self.ui.program_output.append(
                     "Starting parallel worker threads...")
                 self.connect_regex_processor_signals(
                     parallel_processor)  # Connected signals and slots
-                
+
                 parallel_processor.start()
-                
+
             else:
                 # Non-parallel processing version (single-threaded):
                 from modules.regex_processor import RegexProcessor
@@ -384,22 +384,19 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.ui.program_output.append("Starting worker thread...")
                 self.connect_regex_processor_signals(
                     regex_processor_thread)  # Connected signals and slots
-                
+
                 self.thread_pool.start(regex_processor_thread)
 
         except Exception as ex:
             QMessageBox.critical(self, "Search Error",
-                                f"An error occurred in search: {str(ex)}")
+                                 f"An error occurred in search: {str(ex)}")
 
     @Slot()
     def on_clearResults(self):  # Handler for clear table widget
-        if self.ui.table_widget_results.columnCount() > 0:
-            self.ui.table_widget_results.clearContents()
-            self.ui.table_widget_results.setRowCount(0)
-            self.ui.statusbar.showMessage("Cleared results table!", 5000)
-            self.current_results.clear()  # Clear the current results list
-            self._set_visible_count_occurrences_widgets(
-                False)  # Hide count occurrences widgets
+        self.ui.table_widget_results.setModel(None)
+        self.ui.statusbar.showMessage("Cleared results table!", 5000)
+        self.current_results.clear()  # Clear the current results list
+        self._set_visible_of_widgets(False)  # Hide specified widgets on initial load
 
     @Slot()
     def on_exportToExcel(self):
@@ -427,6 +424,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             # Get data
             data = []
             for row in range(row_count):
+                # Add to skip hidden rows when using a text filter
+                if table.isRowHidden(row):
+                    continue
                 row_data = []
                 for col in range(col_count):
                     item = table.item(row, col)

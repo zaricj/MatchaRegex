@@ -25,6 +25,10 @@
    <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
     <normaloff>:/images/matcha-latte.png</normaloff>:/images/matcha-latte.png</iconset>
   </property>
+  <property name="toolTip">
+   <string>Start search with current settings and display data into the table.
+If table is filtered with a text, the current displayed data will be exported!</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">/* Main window and background */
 QWidget {
@@ -657,6 +661,9 @@ QFrame#output_frame {
                <fontweight>DemiBold</fontweight>
               </font>
              </property>
+             <property name="toolTip">
+              <string>Add the entered Regex to the list.</string>
+             </property>
              <property name="styleSheet">
               <string notr="true"/>
              </property>
@@ -785,6 +792,9 @@ QFrame#output_frame {
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
               <widget class="QPushButton" name="button_regex_pattern_remove_selected">
+               <property name="toolTip">
+                <string>Remove the selected Regex from the list</string>
+               </property>
                <property name="text">
                 <string>Remove Selected</string>
                </property>
@@ -796,6 +806,9 @@ QFrame#output_frame {
              </item>
              <item>
               <widget class="QPushButton" name="button_regex_pattern_remove_all">
+               <property name="toolTip">
+                <string>Remove all Regexes from list</string>
+               </property>
                <property name="text">
                 <string>Remove All</string>
                </property>
@@ -956,6 +969,9 @@ QFrame#output_frame {
                </property>
                <property name="mouseTracking">
                 <bool>true</bool>
+               </property>
+               <property name="toolTip">
+                <string>Clears the output area</string>
                </property>
                <property name="text">
                 <string>Clear Output</string>
@@ -1247,6 +1263,9 @@ QFrame#output_frame {
                <fontweight>DemiBold</fontweight>
               </font>
              </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start search with the current settings and display data into the table.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Start Search</string>
              </property>
@@ -1263,7 +1282,21 @@ QFrame#output_frame {
             </widget>
            </item>
            <item>
-            <widget class="QTableWidget" name="table_widget_results">
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLabel" name="label_filter_text">
+               <property name="text">
+                <string>Filter Text:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="line_edit_filter_table_text"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QTableView" name="table_widget_results">
              <property name="enabled">
               <bool>true</bool>
              </property>
@@ -1279,7 +1312,10 @@ QFrame#output_frame {
                <height>100</height>
               </size>
              </property>
-             <attribute name="verticalHeaderCascadingSectionResizes">
+             <property name="sortingEnabled">
+              <bool>true</bool>
+             </property>
+             <attribute name="verticalHeaderHighlightSections">
               <bool>false</bool>
              </attribute>
             </widget>
@@ -1295,6 +1331,9 @@ QFrame#output_frame {
              </item>
              <item>
               <widget class="QPushButton" name="button_count_occurrences">
+               <property name="toolTip">
+                <string>Count occurrences based on the key and display the new data into the table</string>
+               </property>
                <property name="text">
                 <string>Count Occurrences</string>
                </property>
@@ -1309,6 +1348,10 @@ QFrame#output_frame {
                <property name="enabled">
                 <bool>true</bool>
                </property>
+               <property name="toolTip">
+                <string>Exports the current displayed data to Excel.
+If the table is using a text filter, ONLY the filtered data will be exported!</string>
+               </property>
                <property name="text">
                 <string>Export to Excel</string>
                </property>
@@ -1320,6 +1363,9 @@ QFrame#output_frame {
              </item>
              <item>
               <widget class="QPushButton" name="button_search_result_clear_results">
+               <property name="toolTip">
+                <string>Clears all data from the table</string>
+               </property>
                <property name="text">
                 <string>Clear Results</string>
                </property>

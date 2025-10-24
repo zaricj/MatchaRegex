@@ -21,9 +21,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
     QListView, QListWidget, QListWidgetItem, QMainWindow,
     QMenu, QMenuBar, QProgressBar, QPushButton,
     QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
-    QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout,
-    QWidget)
-from resources.ui.qrc import LogSearcher_resource_rc
+    QTableView, QTextEdit, QVBoxLayout, QWidget)
+from resources.ui.qrc from resources.ui.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -769,13 +768,29 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_table_widget.addWidget(self.button_start_search)
 
-        self.table_widget_results = QTableWidget(self.results_frame)
+        self.horizontalLayout_7 = QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.label_filter_text = QLabel(self.results_frame)
+        self.label_filter_text.setObjectName(u"label_filter_text")
+
+        self.horizontalLayout_7.addWidget(self.label_filter_text)
+
+        self.line_edit_filter_table_text = QLineEdit(self.results_frame)
+        self.line_edit_filter_table_text.setObjectName(u"line_edit_filter_table_text")
+
+        self.horizontalLayout_7.addWidget(self.line_edit_filter_table_text)
+
+
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout_7)
+
+        self.table_widget_results = QTableView(self.results_frame)
         self.table_widget_results.setObjectName(u"table_widget_results")
         self.table_widget_results.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.table_widget_results.sizePolicy().hasHeightForWidth())
         self.table_widget_results.setSizePolicy(sizePolicy3)
         self.table_widget_results.setMinimumSize(QSize(0, 100))
-        self.table_widget_results.verticalHeader().setCascadingSectionResizes(False)
+        self.table_widget_results.setSortingEnabled(True)
+        self.table_widget_results.verticalHeader().setHighlightSections(False)
 
         self.verticalLayout_table_widget.addWidget(self.table_widget_results)
 
@@ -882,6 +897,10 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MatchaRegex", None))
+#if QT_CONFIG(tooltip)
+        MainWindow.setToolTip(QCoreApplication.translate("MainWindow", u"Start search with current settings and display data into the table.\n"
+"If table is filtered with a text, the current displayed data will be exported!", None))
+#endif // QT_CONFIG(tooltip)
         self.actionOpen_Output_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Output Folder", None))
         self.actionRegex_101.setText(QCoreApplication.translate("MainWindow", u"Regex 101", None))
         self.actionOpen_Input_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Input Folder", None))
@@ -901,9 +920,18 @@ class Ui_MainWindow(object):
         self.label_regex.setText(QCoreApplication.translate("MainWindow", u"Regex Pattern:", None))
         self.line_edit_regex.setText("")
         self.line_edit_regex.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter or generate regular expression pattern...", None))
+#if QT_CONFIG(tooltip)
+        self.button_add_regex_to_list_widget.setToolTip(QCoreApplication.translate("MainWindow", u"Add the entered Regex to the list.", None))
+#endif // QT_CONFIG(tooltip)
         self.button_add_regex_to_list_widget.setText(QCoreApplication.translate("MainWindow", u"Add Pattern to Search List", None))
         self.section_label_3.setText(QCoreApplication.translate("MainWindow", u"Active Search Patterns", None))
+#if QT_CONFIG(tooltip)
+        self.button_regex_pattern_remove_selected.setToolTip(QCoreApplication.translate("MainWindow", u"Remove the selected Regex from the list", None))
+#endif // QT_CONFIG(tooltip)
         self.button_regex_pattern_remove_selected.setText(QCoreApplication.translate("MainWindow", u"Remove Selected", None))
+#if QT_CONFIG(tooltip)
+        self.button_regex_pattern_remove_all.setToolTip(QCoreApplication.translate("MainWindow", u"Remove all Regexes from list", None))
+#endif // QT_CONFIG(tooltip)
         self.button_regex_pattern_remove_all.setText(QCoreApplication.translate("MainWindow", u"Remove All", None))
         self.section_label_program_output.setText(QCoreApplication.translate("MainWindow", u"System Output", None))
         self.label_font_size_program_output.setText(QCoreApplication.translate("MainWindow", u"Font Size:", None))
@@ -915,6 +943,9 @@ class Ui_MainWindow(object):
         self.combobox_font_size_program_output.setItemText(5, QCoreApplication.translate("MainWindow", u"15pt", None))
         self.combobox_font_size_program_output.setItemText(6, QCoreApplication.translate("MainWindow", u"16pt", None))
 
+#if QT_CONFIG(tooltip)
+        self.button_clear_program_output.setToolTip(QCoreApplication.translate("MainWindow", u"Clears the output area", None))
+#endif // QT_CONFIG(tooltip)
         self.button_clear_program_output.setText(QCoreApplication.translate("MainWindow", u"Clear Output", None))
         self.program_output.setPlaceholderText(QCoreApplication.translate("MainWindow", u"System output and status messages will appear here...", None))
         self.progress_bar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
@@ -930,10 +961,24 @@ class Ui_MainWindow(object):
         self.button_parallel_processing_info.setToolTip(QCoreApplication.translate("MainWindow", u"Show parallel processing help information.", None))
 #endif // QT_CONFIG(tooltip)
         self.button_parallel_processing_info.setText("")
+#if QT_CONFIG(tooltip)
+        self.button_start_search.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Start search with the current settings and display data into the table.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
+        self.label_filter_text.setText(QCoreApplication.translate("MainWindow", u"Filter Text:", None))
         self.combobox_count_occurrences.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Choose a column to count occurrences...", None))
+#if QT_CONFIG(tooltip)
+        self.button_count_occurrences.setToolTip(QCoreApplication.translate("MainWindow", u"Count occurrences based on the key and display the new data into the table", None))
+#endif // QT_CONFIG(tooltip)
         self.button_count_occurrences.setText(QCoreApplication.translate("MainWindow", u"Count Occurrences", None))
+#if QT_CONFIG(tooltip)
+        self.button_search_result_export_to_csv.setToolTip(QCoreApplication.translate("MainWindow", u"Exports the current displayed data to Excel.\n"
+"If the table is using a text filter, ONLY the filtered data will be exported!", None))
+#endif // QT_CONFIG(tooltip)
         self.button_search_result_export_to_csv.setText(QCoreApplication.translate("MainWindow", u"Export to Excel", None))
+#if QT_CONFIG(tooltip)
+        self.button_search_result_clear_results.setToolTip(QCoreApplication.translate("MainWindow", u"Clears all data from the table", None))
+#endif // QT_CONFIG(tooltip)
         self.button_search_result_clear_results.setText(QCoreApplication.translate("MainWindow", u"Clear Results", None))
         self.menuOpen.setTitle(QCoreApplication.translate("MainWindow", u"Open", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))

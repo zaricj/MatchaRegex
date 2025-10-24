@@ -79,7 +79,7 @@ class SignalHandlerMixin:
                 self.current_results = results
                 self.ui.program_output.append(
                     f"DataFrame created with {len(results_df)} rows, columns:\n{list(results_df.columns)}")
-                self.ui.table_widget_results.clear()
+                self.ui.table_widget_results.setModel(None)
                 self._populate_results_table(results_df)
                 # Populate count occurrences combobox
                 self.ui.combobox_count_occurrences.clear()
@@ -94,10 +94,10 @@ class SignalHandlerMixin:
             self.ui.program_output.append(
                 f"Error in handle_finished: {str(e)}")
             QMessageBox.critical(self, "Table Error",
-                                 f"Failed to update results table: {str(e)}")
+                                f"Failed to update results table: {str(e)}")
 
         self._enable_start_button(True)
-        self._set_visible_count_occurrences_widgets(True)
+        self._set_visible_of_widgets(True)
         self.handle_progress_bar(0)
 
         # Release worker reference
@@ -154,13 +154,21 @@ class SignalHandlerMixin:
             self.ui.statusbar.showMessage("Searching...", 0)
 
     # Method to handle count occurrences widgets visible state
-    def _set_visible_count_occurrences_widgets(self, visibility: bool):
+    def _set_visible_of_widgets(self, visibility: bool):
         """ Helper method to set visibility of count occurrences widgets.
         Args:
             visibility (bool): True to show, False to hide
+        
+        Hides the following widgets:
+            - self.ui.button_count_occurrences
+            - self.ui.combobox_count_occurrences
+            - self.ui.line_edit_filter_table_text
+            - self.ui.label_filter_text
         """
         self.ui.button_count_occurrences.setVisible(visibility)
         self.ui.combobox_count_occurrences.setVisible(visibility)
+        self.ui.line_edit_filter_table_text.setVisible(visibility)
+        self.ui.label_filter_text.setVisible(visibility)
 
     # ============= CONNECTION METHODS =============
 
@@ -225,6 +233,8 @@ class SignalHandlerMixin:
         # Input text changed
         self.ui.line_edit_files_folder.textChanged.connect(
             self.on_filesFolderTextChanged)
+        self.ui.line_edit_filter_table_text.textChanged.connect(
+            self._filter_table)
 
         # ====== COMBOBOX EVENTS ======
 
@@ -279,18 +289,27 @@ class SignalHandlerMixin:
     # ============= HELPER METHODS =============
 
     def _populate_results_table(self, results: pd.DataFrame):
-        """Populate the results table with DataFrame data"""
-        self.ui.table_widget_results.clear()
-
+        """Display the DataFrame efficiently in a QTableView."""
+        from modules.pandas_model import PandasModel
+        
         if results.empty:
+            self.ui.table_widget_results.setModel(None)
             return
 
-        self.ui.table_widget_results.setRowCount(len(results))
-        self.ui.table_widget_results.setColumnCount(len(results.columns))
-        self.ui.table_widget_results.setHorizontalHeaderLabels(
-            results.columns.tolist())
+        model = PandasModel(results)
+        self.ui.table_widget_results.setModel(model)
+        self.ui.table_widget_results.resizeColumnsToContents()
 
-        for row, record in results.iterrows():
-            for col, (key, value) in enumerate(record.items()):
-                item = QTableWidgetItem(str(value))
-                self.ui.table_widget_results.setItem(row, col, item)
+    def _filter_table(self, text: str):
+        """Filter QTableWidget rows based on the search text"""
+        text = text.strip().lower()
+
+        for row in range(self.ui.table_widget_results.rowCount()):
+            row_match = False
+            for col in range(self.ui.table_widget_results.columnCount()):
+                item = self.ui.table_widget_results.item(row, col)
+                if item and text in item.text().lower():
+                    row_match = True
+                    break
+
+            self.ui.table_widget_results.setRowHidden(row, not row_match)
