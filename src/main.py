@@ -402,8 +402,12 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def on_exportToExcel(self):
         """Export table_widget_results to Excel file."""
         table = self.ui.table_widget_results
-        row_count = table.rowCount()
-        col_count = table.columnCount()
+        model = table.model()
+        if model is None:
+            return
+        
+        row_count = model.rowCount()
+        col_count = model.columnCount()
 
         if row_count == 0 or col_count == 0:
             QMessageBox.information(
@@ -429,8 +433,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                     continue
                 row_data = []
                 for col in range(col_count):
-                    item = table.item(row, col)
-                    row_data.append(item.text() if item else "")
+                    index = model.index(row, col)
+                    cell_data = model.data(index)
+                    row_data.append(cell_data if cell_data else "")
                 data.append(row_data)
 
             from modules.excel_exporter import ExcelExporterThread

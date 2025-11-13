@@ -46,6 +46,7 @@ class RegexProcessor(QRunnable):
                       pattern_group_names: list) -> list[dict[str, Any]]:
         """Process files with compiled regex patterns."""
         total = len(files)
+        files = sorted(files, key=lambda f: f.name) # Sorts the files by name for consistent processing order
         results = []
 
         # Pre-calculate column naming strategy
@@ -84,6 +85,7 @@ class RegexProcessor(QRunnable):
 
                 # Read file with larger buffer for better I/O performance
                 with open(filepath, "r", encoding="utf-8", errors="replace", buffering=65536) as f:
+                    # If multiline is enabled, read entire file at once
                     if self.multiline:
                         text = f.read()
                         # Combine all patterns into single search pass if possible

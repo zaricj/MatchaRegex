@@ -94,7 +94,7 @@ class SignalHandlerMixin:
             self.ui.program_output.append(
                 f"Error in handle_finished: {str(e)}")
             QMessageBox.critical(self, "Table Error",
-                                f"Failed to update results table: {str(e)}")
+                                 f"Failed to update results table: {str(e)}")
 
         self._enable_start_button(True)
         self._set_visible_of_widgets(True)
@@ -158,7 +158,7 @@ class SignalHandlerMixin:
         """ Helper method to set visibility of count occurrences widgets.
         Args:
             visibility (bool): True to show, False to hide
-        
+
         Hides the following widgets:
             - self.ui.button_count_occurrences
             - self.ui.combobox_count_occurrences
@@ -291,7 +291,7 @@ class SignalHandlerMixin:
     def _populate_results_table(self, results: pd.DataFrame):
         """Display the DataFrame efficiently in a QTableView."""
         from modules.pandas_model import PandasModel
-        
+
         if results.empty:
             self.ui.table_widget_results.setModel(None)
             return
@@ -301,15 +301,24 @@ class SignalHandlerMixin:
         self.ui.table_widget_results.resizeColumnsToContents()
 
     def _filter_table(self, text: str):
-        """Filter QTableWidget rows based on the search text"""
+        """Filter QTableView rows based on the search text"""
         text = text.strip().lower()
+        table_view = self.ui.table_widget_results
+        model = table_view.model()
 
-        for row in range(self.ui.table_widget_results.rowCount()):
+        if model is None:
+            return
+
+        row_count = model.rowCount()
+        col_count = model.columnCount()
+
+        for row in range(row_count):
             row_match = False
-            for col in range(self.ui.table_widget_results.columnCount()):
-                item = self.ui.table_widget_results.item(row, col)
-                if item and text in item.text().lower():
+            for col in range(col_count):
+                index = model.index(row, col)
+                cell_data = model.data(index)
+                if cell_data and text in str(cell_data).lower():
                     row_match = True
                     break
 
-            self.ui.table_widget_results.setRowHidden(row, not row_match)
+            table_view.setRowHidden(row, not row_match)
