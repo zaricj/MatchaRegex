@@ -18,6 +18,7 @@ from PySide6.QtCore import (
     QTextStream,
     QSettings,
     QIODevice,
+    Qt
 )
 import sys
 from pathlib import Path
@@ -226,7 +227,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
     @Slot()
     def on_openOutputDirectory(self):
-        file_path = Path(self.output_file_path)
+        file_path: Path = Path(self.output_file_path)
         directory: str = file_path.parent.__str__() if file_path.exists() else ""
         self.helper.open_dir_in_file_manager(directory)
 
@@ -363,7 +364,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.connect_regex_processor_signals(
                     parallel_processor)  # Connected signals and slots
 
-                parallel_processor.start()
+                self.thread_pool.start(parallel_processor)
 
             else:
                 # Non-parallel processing version (single-threaded):
@@ -396,7 +397,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.ui.table_widget_results.setModel(None)
         self.ui.statusbar.showMessage("Cleared results table!", 5000)
         self.current_results.clear()  # Clear the current results list
-        self._set_visible_of_widgets(False)  # Hide specified widgets on initial load
+        # Hide specified widgets on initial load
+        self._set_visible_of_widgets(False)
 
     @Slot()
     def on_exportToExcel(self):
@@ -405,7 +407,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         model = table.model()
         if model is None:
             return
-        
+
         row_count = model.rowCount()
         col_count = model.columnCount()
 
@@ -421,27 +423,10 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             "Excel Files (*.xlsx)"
         )
         if self.output_file_path:
-            # Get headers
-            headers = [table.horizontalHeaderItem(
-                col).text() for col in range(col_count)]
-
-            # Get data
-            data = []
-            for row in range(row_count):
-                # Add to skip hidden rows when using a text filter
-                if table.isRowHidden(row):
-                    continue
-                row_data = []
-                for col in range(col_count):
-                    index = model.index(row, col)
-                    cell_data = model.data(index)
-                    row_data.append(cell_data if cell_data else "")
-                data.append(row_data)
-
             from modules.excel_exporter import ExcelExporterThread
 
             excel_exporter_thread = ExcelExporterThread(
-                data, headers, self.output_file_path, self.app_icon)
+                table, row_count, col_count, self.output_file_path, self.app_icon)
             self.connect_excel_exporter_signals(excel_exporter_thread)
             self.thread_pool.start(excel_exporter_thread)
         else:

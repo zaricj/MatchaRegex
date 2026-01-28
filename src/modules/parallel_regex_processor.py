@@ -147,7 +147,8 @@ class ParallelRegexProcessor(QObject):
         self.files_mutex = QMutex()
         self.result_limit_reached = False
     
-    def start(self):
+    @Slot()
+    def run(self):
         """Start the parallel processing"""
         try:
             # Gather files

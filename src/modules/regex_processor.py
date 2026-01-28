@@ -2,6 +2,7 @@ from typing import Any
 import re
 from pathlib import Path
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+import pandas as pd
 
 
 class RegexProcessorSignals(QObject):
@@ -11,7 +12,7 @@ class RegexProcessorSignals(QObject):
     program_output_text = Signal(str)
     statusbar_show_message = Signal(str, int)
     progress_update = Signal(int)
-    finished = Signal(list)
+    finished = Signal(pd.DataFrame)
 
 
 class RegexProcessor(QRunnable):
@@ -31,11 +32,29 @@ class RegexProcessor(QRunnable):
         results: list[dict[str, Any]] = []
         try:
             results = self.search_files()
+
+            if results:
+                # Normalize results to ensure consistent keys (in background thread)
+                all_keys = set()
+                for result in results:
+                    all_keys.update(result.keys())
+                for result in results:
+                    for key in all_keys:
+                        if key not in result:
+                            result[key] = ""
+                # Create DataFrame in background thread (not main thread!)
+                self.signals.program_output_text.emit(
+                    f"Creating DataFrame with {len(results)} rows...")
+                results_df = pd.DataFrame(results, dtype=str)
+                self.signals.finished.emit(results_df)
+            else:
+                # Emit empty DataFrame
+                self.signals.finished.emit(pd.DataFrame())
+
         except Exception as e:
             self.signals.message_critical.emit(
                 "Search Error", f"Thread error: {str(e)}")
-        finally:
-            self.signals.finished.emit(results)
+            self.signals.finished.emit(pd.DataFrame())
 
     def extract_named_groups_from_regex(self, regex_pattern: str) -> list[str]:
         """Extract named groups from regex pattern string."""
@@ -46,7 +65,8 @@ class RegexProcessor(QRunnable):
                       pattern_group_names: list) -> list[dict[str, Any]]:
         """Process files with compiled regex patterns."""
         total = len(files)
-        files = sorted(files, key=lambda f: f.name) # Sorts the files by name for consistent processing order
+        # Sorts the files by name for consistent processing order
+        files = sorted(files, key=lambda f: f.name)
         results = []
 
         # Pre-calculate column naming strategy

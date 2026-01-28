@@ -61,24 +61,14 @@ class SignalHandlerMixin:
 
     # ====== START FINISHED SIGNAL SLOTS START ====== #
 
-    @Slot(list)  # For the RegexProcessorThread
-    def handle_finished_regex_processor(self, results: list[dict[str, Any]]):
+    @Slot(object)  # For the RegexProcessorThread (receives DataFrame)
+    def handle_finished_regex_processor(self, results_df: pd.DataFrame):
         try:
-            if results:
-                # Normalize results to ensure consistent keys
-                all_keys = set()
-                for result in results:
-                    all_keys.update(result.keys())
-                for result in results:
-                    for key in all_keys:
-                        if key not in result:
-                            result[key] = ""
-                # Create DataFrame in main thread
-                results_df = pd.DataFrame(results, dtype=str)
+            if not results_df.empty:
                 # Store current results for further processing
-                self.current_results = results
+                self.current_results = results_df.to_dict(orient='records')
                 self.ui.program_output.append(
-                    f"DataFrame created with {len(results_df)} rows, columns:\n{list(results_df.columns)}")
+                    f"DataFrame ready with {len(results_df)} rows, columns:\n{list(results_df.columns)}")
                 self.ui.table_widget_results.setModel(None)
                 self._populate_results_table(results_df)
                 # Populate count occurrences combobox

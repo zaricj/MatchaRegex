@@ -1,5 +1,5 @@
 # File: modules/excel_exporter.py
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot, Qt
 from PySide6.QtGui import QIcon
 import pandas as pd
 
@@ -11,12 +11,14 @@ class ExcelExporterSignals(QObject):
     statusbar_show_message = Signal(str, int)
     export_success_with_path = Signal(str, object)
 
+
 class ExcelExporterThread(QRunnable):
-    def __init__(self, data: list[list], headers: list[str], output_file_path: str, app_icon: QIcon):
+    def __init__(self, table, row_count: int, col_count: int, output_file_path: str, app_icon: QIcon):
         super().__init__()
         self.signals = ExcelExporterSignals()
-        self.data = data
-        self.headers = headers
+        self.table = table
+        self.row_count = row_count
+        self.col_count = col_count
         self.output_file_path: str = output_file_path
         self.app_icon = app_icon
         self.setAutoDelete(True)
@@ -28,24 +30,49 @@ class ExcelExporterThread(QRunnable):
     @Slot()
     def run(self):
         try:
-            if not self.data:
-                self.signals.message_critical.emit("Data Validation Error", "No data to export.")
-                return
-            if not self.headers:
-                self.signals.message_critical.emit("Data Validation Error", "No header found from table.")
-                return
-
             # Wait until path is set
             if not self.output_file_path:
-                raise ValueError("File path was not provided.") # user canceled or missing
+                # user canceled or missing
+                raise ValueError("File path was not provided.")
+
+            # Extract data from table (in background thread)
+            self.signals.statusbar_show_message.emit(
+                "Preparing data for export, please wait...", 0)
+            data = []
+            headers = []
+            for row in range(self.row_count):
+                # Skip hidden rows when using a text filter
+                if self.table.isRowHidden(row):
+                    continue
+                row_data = []
+                model = self.table.model()
+                for col in range(self.col_count):
+                    if row == 0: # Get headers
+                        headers.append(model.headerData(col, Qt.Horizontal))
+                    index = model.index(row, col)
+                    cell_data = model.data(index)
+                    row_data.append(cell_data if cell_data else "")
+                data.append(row_data)
+                
+
+            if not data:
+                self.signals.message_critical.emit(
+                    "Data Validation Error", "No data to export.")
+                return
+            
+            if not headers:
+                self.signals.message_critical.emit(
+                    "Data Validation Error", "No headers found for export.")
+                return
 
             if not self.output_file_path.lower().endswith(".xlsx"):
                 self.output_file_path += ".xlsx"
 
             # Export to Excel
-            df = pd.DataFrame(self.data, columns=self.headers)
-            self.signals.statusbar_show_message.emit(f"Exporting to Excel file in: {self.output_file_path}", 10000)
-            
+            df = pd.DataFrame(data, columns=headers)
+            self.signals.statusbar_show_message.emit(
+                f"Exporting data to Excel file in file: {self.output_file_path}", 10000)
+
             with pd.ExcelWriter(self.output_file_path, engine="xlsxwriter") as writer:
                 df.to_excel(writer, sheet_name="Result", index=False)
                 worksheet = writer.sheets["Result"]
@@ -59,8 +86,11 @@ class ExcelExporterThread(QRunnable):
                 })
                 worksheet.set_column(0, max_col - 1, 18)
 
-            self.signals.export_success_with_path.emit(self.output_file_path, self.app_icon)
-            self.signals.statusbar_show_message.emit("Result exported to Excel.", 5000)
+            self.signals.export_success_with_path.emit(
+                self.output_file_path, self.app_icon)
+            self.signals.statusbar_show_message.emit(
+                "Result exported to Excel.", 5000)
 
         except Exception as e:
-            self.signals.message_critical.emit("Thread Export Error", f"Thread error: {str(e)}")
+            self.signals.message_critical.emit(
+                "Thread Export Error", f"Thread error: {str(e)}")
