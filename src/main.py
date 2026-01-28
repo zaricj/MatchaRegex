@@ -133,8 +133,18 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.ui.statusbar.showMessage(
             f"Thread Pool with {thread_perf} threads initialized.", 10000)
 
-    def thread_pool_calculated(self, performance: int) -> int:
-        """Returns the calculated thread count based on the system's CPU cores."""
+    def thread_pool_calculated(self, performance: int = 1) -> int:
+        """Returns the calculated thread count based on the system's CPU cores.
+        - Low = 1/4 of max threads.
+        - Medium = half of max threads.
+        - High = Uses all available threads.
+
+        Args:
+            performance (int): Performance level (0 = low, 1 = medium, 2 = high). Default is 1 (medium).
+
+        Returns:
+            int: Performance-based thread count. 
+        """
         max_threads = self.thread_pool.maxThreadCount()
         if performance == 2:  # High performance
             return max_threads
@@ -364,7 +374,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self.connect_regex_processor_signals(
                     parallel_processor)  # Connected signals and slots
 
-                self.thread_pool.start(parallel_processor)
+                parallel_processor.run()
 
             else:
                 # Non-parallel processing version (single-threaded):
