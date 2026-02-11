@@ -87,6 +87,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.regex_patterns: list[str] = []
         self.output_file_path: str = ""
         self.current_results: list[dict[str, str]] = []
+        # Remember last export directory
+        self.last_export_directory: str = self.settings.value(
+            "last_export_directory", str(Path.home()))
 
         self.config_handler = ConfigHandler(
             main_window=self,
@@ -426,13 +429,24 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 self, "Export Information", "No results to export.")
             return
 
+        # Use last export directory, fall back to home if it doesn't exist
+        default_dir = self.last_export_directory if Path(
+            self.last_export_directory).exists() else str(Path.home())
+        default_file = str(Path(default_dir) / "Regex_Search_Result.xlsx")
+
         self.output_file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Result",
-            "Regex_Search_Result",
+            default_file,
             "Excel Files (*.xlsx)"
         )
         if self.output_file_path:
+            # Save the directory for next time
+            self.last_export_directory = str(
+                Path(self.output_file_path).parent)
+            self.settings.setValue(
+                "last_export_directory", self.last_export_directory)
+
             from modules.excel_exporter import ExcelExporterThread
 
             excel_exporter_thread = ExcelExporterThread(
