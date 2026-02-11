@@ -18,11 +18,13 @@ class HelperMethods:
         self.signals = HelperMethodSignals()
         
     def browse_folder_path(self, line_edit: QLineEdit):
+        # Check if input field has already a path set, if it has open that instead of the default '.'
+        default_folder  = line_edit.text() if len(line_edit.text()) > 0 else ""
         folder_path = QFileDialog.getExistingDirectory(
-            self.main_window,
-            "Select Folder",
-            "",
-            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
+            parent=self.main_window,
+            caption="Select Folder",
+            dir=default_folder,
+            options=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
         )
         if folder_path:
             line_edit.setText(folder_path)
