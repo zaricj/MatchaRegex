@@ -24,11 +24,11 @@ GUI_CONFIG_FILE_PATH: Path = SRC_ROOT_DIR / "config" / "config.json"
 DARK_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "dark.qss"
 LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "light.qss"
 
-ICON_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "matcha-latte.png"
+ICON_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "matcha-latte.png"
 
 # Theme file icons
-DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "dropdown_arrow_dark_14x14.png"
-LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "dropdown_arrow_light_14x14.png"
+DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "dropdown_arrow_dark_14x14.png"
+LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "dropdown_arrow_light_14x14.png"
 
 
 class PreBuiltRegexManagerWidget(QWidget):

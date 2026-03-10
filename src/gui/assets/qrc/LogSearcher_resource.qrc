@@ -1,14 +1,17 @@
 <RCC>
   <qresource>
-    <file>images/dropdown_arrow_dark_14x14.png</file>
-    <file>images/dropdown_arrow_light_14x14.png</file>
-    <file>images/checkmark.png</file>
-    <file>images/matcha-latte.png</file>
-    <file>images/export-to-file.png</file>
-    <file>images/convert.png</file>
-    <file>images/remove-all.png</file>
-    <file>images/remove-selected.png</file>
-    <file>images/clean-emissions-svgrepo-com.png</file>
-    <file>images/search-file.png</file>
+    <file>../images/checkmark.png</file>
+    <file>../images/checkmark_48x48.png</file>
+    <file>../images/checkmark_white_48x48.png</file>
+    <file>../images/clean-emissions-svgrepo-com.png</file>
+    <file>../images/convert.png</file>
+    <file>../images/dropdown_arrow_dark_14x14.png</file>
+    <file>../images/dropdown_arrow_light_14x14.png</file>
+    <file>../images/export-to-file.png</file>
+    <file>../images/matcha-latte.png</file>
+    <file>../images/matcha-latte_48x48.png</file>
+    <file>../images/remove-all.png</file>
+    <file>../images/remove-selected.png</file>
+    <file>../images/search-file.png</file>
   </qresource>
 </RCC>

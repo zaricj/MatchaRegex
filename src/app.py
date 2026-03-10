@@ -106,7 +106,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         self.light_theme_file = cwd / "gui" / "assets" / "styles" / "light.qss"
 
         # GUI Window Icon
-        app_icon_path = cwd / "gui" / "assets" / "qrc" / "images" / "matcha-latte.png"
+        app_icon_path = cwd / "gui" / "assets" / "images" / "matcha-latte.png"
         self.app_icon = QPixmap(app_icon_path.__str__())
 
         # Current app theme, saved to QSettings
