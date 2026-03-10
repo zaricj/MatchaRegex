@@ -5,18 +5,17 @@
 import webbrowser
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtCore import Slot, QUrl
-from PySide6.QtWidgets import QMessageBox, QTableWidgetItem
-from modules.excel_exporter import ExcelExporterThread
-from modules.helpers import HelperMethods
-from modules.regex_processor import RegexProcessor
+from PySide6.QtWidgets import QMessageBox
+from services.workers.thread_worker import Worker
+from gui.utils.helpers import HelperMethods
 import pandas as pd
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 # Avoid circular import for type checking
 if TYPE_CHECKING:
-    from widgets.main.LogSearcherUI_ui import Ui_MainWindow
-    from main import MainWindow
+    from gui.ui.main.LogSearcherUI_ui import Ui_MainWindow
+    from app import MainWindow
 
 
 class SignalHandlerMixin:
@@ -61,7 +60,7 @@ class SignalHandlerMixin:
 
     # ====== START FINISHED SIGNAL SLOTS START ====== #
 
-    @Slot(object)  # For the RegexProcessorThread (receives DataFrame)
+    @Slot(object)
     def handle_finished_regex_processor(self, results_df: pd.DataFrame):
         try:
             if not results_df.empty:
@@ -162,7 +161,7 @@ class SignalHandlerMixin:
 
     # ============= CONNECTION METHODS =============
 
-    def connect_regex_processor_signals(self, regex_processor: RegexProcessor):
+    def connect_regex_processor_signals(self, regex_processor: Worker):
         """Connect the signals from the regex processor thread to the main window's slots."""
         regex_processor.signals.progress_update.connect(
             self.handle_progress_bar)
@@ -179,11 +178,11 @@ class SignalHandlerMixin:
         regex_processor.signals.finished.connect(
             self.handle_finished_regex_processor)
 
-    def connect_excel_exporter_signals(self, excel_exporter: ExcelExporterThread):
+    def connect_excel_exporter_signals(self, excel_exporter: Worker):
         """Connect the signals from the excel exporter thread to the main window's slots
 
         Args:
-            excel_exporter (ExcelExporterThread): The excel exporter thread instance
+            excel_exporter (Worker): The excel export worker instance
         """
         # Store reference to current exporter
         self._current_excel_exporter = excel_exporter
@@ -280,7 +279,7 @@ class SignalHandlerMixin:
 
     def _populate_results_table(self, results: pd.DataFrame):
         """Display the DataFrame efficiently in a QTableView."""
-        from modules.pandas_model import PandasModel
+        from core.models.pandas_model import PandasModel
 
         if results.empty:
             self.ui.table_widget_results.setModel(None)

@@ -1,38 +1,34 @@
 from pathlib import Path
 
+
 def fix_qrc_import():
     """
-    Fix the import error that appears after every ui file changed in Qt Designer.
-    
-    This opens the ui file and replaces the line with 'from resources.interface.qrc import LogSearcher_resource_rc' 
+    Fix generated UI imports after recompiling `.ui` files.
     """
     cwd = Path(__file__).parent
-    print(cwd)
-    
-    ui_file_path = cwd / "widgets"/ "main" / "LogSearcherUI_ui.py"
-    other = cwd / "widgets" / "other" / "PreBuiltRegexManagerWidget_ui.py"
-    print(f"UI File Path: {ui_file_path}")
-    
-    ui_files = [ui_file_path,other]
-    
+    ui_files = [
+        cwd / "gui" / "ui" / "main" / "LogSearcherUI_ui.py",
+        cwd / "gui" / "ui" / "dialogs" / "PreBuiltRegexManagerWidget_ui.py",
+    ]
+
     for ui_file in ui_files:
         with open(ui_file, "r") as file:
             lines = file.readlines()
-    
+
         modified = False
         for i, line in enumerate(lines):
-            if "import LogSearcher_resource_rc" in line and "from resources.interface.qrc" not in line:
+            if "import LogSearcher_resource_rc" in line:
                 lines[i] = line.replace(
                     "import LogSearcher_resource_rc",
-                    "from resources.ui.qrc import LogSearcher_resource_rc"
+                    "from gui.assets.qrc import LogSearcher_resource_rc"
                 )
-                print("Replaced import!")
                 modified = True
                 break
-            
+
         if modified:
             with open(ui_file, "w") as file:
                 file.writelines(lines)
 
-# Fixes the import error, can be removed in the future when app is prod ready.
-fix_qrc_import()
+
+if __name__ == "__main__":
+    fix_qrc_import()

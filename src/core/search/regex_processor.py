@@ -1,8 +1,9 @@
 from typing import Any
 import re
 from pathlib import Path
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import QObject, Signal
 import pandas as pd
+from core.patterns.pattern_profiles import PatternSpec
 
 
 class RegexProcessorSignals(QObject):
@@ -15,19 +16,39 @@ class RegexProcessorSignals(QObject):
     finished = Signal(pd.DataFrame)
 
 
-class RegexProcessor(QRunnable):
+class RegexSearchTask:
     def __init__(self, regex_patterns: list = None, folder_path: Path = None,
-                 file_patterns: list[str] = None, multiline: bool = False, max_rows: int = 0):
-        super().__init__()
-        self.signals = RegexProcessorSignals()
+                 file_patterns: list[str] = None, multiline: bool = False, max_rows: int = 0,
+                 signals: RegexProcessorSignals | None = None):
+        self.signals = signals or RegexProcessorSignals()
         self.regex_patterns = regex_patterns if regex_patterns is not None else []
         self.folder_path = folder_path
         self.file_patterns = file_patterns if file_patterns is not None else []
         self.multiline = multiline
-        self.max_rows = max_rows  # Default to 0 (no limit)
-        self.setAutoDelete(True)
+        self.max_rows = max_rows
 
-    @Slot()
+    def _normalize_pattern_specs(self) -> list[PatternSpec]:
+        normalized: list[PatternSpec] = []
+        for index, pattern in enumerate(self.regex_patterns, start=1):
+            if isinstance(pattern, PatternSpec):
+                normalized.append(pattern)
+            elif isinstance(pattern, dict):
+                expression = str(pattern.get("expression", "")).strip()
+                if expression:
+                    normalized.append(
+                        PatternSpec(
+                            name=str(pattern.get("name", f"Pattern{index}")).strip() or f"Pattern{index}",
+                            expression=expression,
+                        )
+                    )
+            else:
+                expression = str(pattern).strip()
+                if expression:
+                    normalized.append(
+                        PatternSpec(name=f"Pattern{index}", expression=expression)
+                    )
+        return normalized
+
     def run(self):
         results: list[dict[str, Any]] = []
         try:
@@ -71,24 +92,23 @@ class RegexProcessor(QRunnable):
 
         # Pre-calculate column naming strategy
         all_group_names = set()
-        for group_names in pattern_group_names:
+        for _pattern_spec, group_names in pattern_group_names:
             all_group_names.update(group_names)
 
         use_pattern_prefix = len(all_group_names) < sum(
-            len(gn) for gn in pattern_group_names)
+            len(group_names) for _pattern_spec, group_names in pattern_group_names)
 
-        # Pre-build column name mappings to avoid repeated string formatting
         col_name_maps = []
-        for pattern_idx, group_names in enumerate(pattern_group_names, 1):
+        for pattern_spec, group_names in pattern_group_names:
             if group_names:
                 if use_pattern_prefix:
                     col_map = {
-                        gn: f"Pattern{pattern_idx}_{gn}" for gn in group_names}
+                        gn: f"{pattern_spec.name}_{gn}" for gn in group_names}
                 else:
                     col_map = {gn: gn for gn in group_names}
             else:
                 col_map = None
-            col_name_maps.append((col_map, f"Pattern{pattern_idx}_Match"))
+            col_name_maps.append((pattern_spec, col_map))
 
         # Batch progress updates (every 5% or every 10 files, whichever is smaller)
         progress_interval = max(1, min(10, total // 20))
@@ -109,9 +129,9 @@ class RegexProcessor(QRunnable):
                     if self.multiline:
                         text = f.read()
                         # Combine all patterns into single search pass if possible
-                        for pattern_idx, (compiled_regex, (col_map, match_col)) in enumerate(zip(compiled_patterns, col_name_maps)):
+                        for compiled_regex, (pattern_spec, col_map) in zip(compiled_patterns, col_name_maps):
                             for match in compiled_regex.finditer(text):
-                                result = {"File": filepath.name}
+                                result = {"File": filepath.name, "Pattern": pattern_spec.name}
                                 if col_map:
                                     # Use pre-built column names
                                     groupdict = match.groupdict()
@@ -119,7 +139,7 @@ class RegexProcessor(QRunnable):
                                         result[col_name] = groupdict.get(
                                             group_name) or ""
                                 else:
-                                    result[match_col] = match.group(0) or ""
+                                    result["Match"] = match.group(0) or ""
                                 results.append(result)
                                 # Limit results early if max_rows is set and greater than 0
                                 if self.max_rows > 0 and len(results) >= self.max_rows:
@@ -128,24 +148,23 @@ class RegexProcessor(QRunnable):
                                     return results
                     else:
                         # Line-by-line processing
-                        for line_number, line in enumerate(f, start=1):
+                        for line in f:
                             line = line.strip()
                             if not line:
                                 continue
 
-                            for pattern_idx, (compiled_regex, (col_map, match_col)) in enumerate(zip(compiled_patterns, col_name_maps)):
+                            for compiled_regex, (pattern_spec, col_map) in zip(compiled_patterns, col_name_maps):
                                 try:
                                     for match in compiled_regex.finditer(line):
                                         result = {
-                                            "File": filepath.name, "Line": line_number}
+                                            "File": filepath.name, "Pattern": pattern_spec.name}
                                         if col_map:
                                             groupdict = match.groupdict()
                                             for group_name, col_name in col_map.items():
                                                 result[col_name] = groupdict.get(
                                                     group_name) or ""
                                         else:
-                                            result[match_col] = match.group(
-                                                0) or ""
+                                            result["Match"] = match.group(0) or ""
                                         results.append(result)
                                         # Limit results early if max_rows is set and greater than 0
                                         if self.max_rows > 0 and len(results) >= self.max_rows:
@@ -211,14 +230,15 @@ class RegexProcessor(QRunnable):
         pattern_group_names = []
 
         flags = re.MULTILINE if self.multiline else 0
-        for regex in self.regex_patterns:
+        pattern_specs = self._normalize_pattern_specs()
+        for pattern_spec in pattern_specs:
             try:
-                compiled = re.compile(regex, flags)
-                group_names = self.extract_named_groups_from_regex(regex)
+                compiled = re.compile(pattern_spec.expression, flags)
+                group_names = self.extract_named_groups_from_regex(pattern_spec.expression)
                 compiled_patterns.append(compiled)
-                pattern_group_names.append(group_names)
+                pattern_group_names.append((pattern_spec, group_names))
             except re.error as e:
-                raise ValueError(f"Invalid regex pattern '{regex}': {e}")
+                raise ValueError(f"Invalid regex pattern '{pattern_spec.name}': {e}")
 
         self.signals.program_output_text.emit("Starting file processing")
 
@@ -226,3 +246,17 @@ class RegexProcessor(QRunnable):
             files, compiled_patterns, pattern_group_names)
 
         return results
+
+
+def run_regex_search(regex_patterns: list = None, folder_path: Path = None,
+                     file_patterns: list[str] | None = None, multiline: bool = False,
+                     max_rows: int = 0, signals: RegexProcessorSignals | None = None):
+    task = RegexSearchTask(
+        regex_patterns=regex_patterns,
+        folder_path=folder_path,
+        file_patterns=file_patterns,
+        multiline=multiline,
+        max_rows=max_rows,
+        signals=signals,
+    )
+    task.run()

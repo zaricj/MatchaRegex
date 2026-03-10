@@ -2,12 +2,12 @@ from PySide6.QtWidgets import QWidget, QMessageBox, QListWidget, QLineEdit, QLis
 from PySide6.QtCore import Slot, QFile, QIODevice, QTextStream
 from PySide6.QtGui import QCloseEvent
 from pathlib import Path
-from modules.config_handler import ConfigHandler
-from widgets.other.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
+from services.config.config_handler import ConfigHandler
+from gui.ui.dialogs.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from src.main import MainWindow
+    from app import MainWindow
 
 
 # Determine the path of the current file and resolve it to handle symlinks/etc.
@@ -21,14 +21,14 @@ GUI_CONFIG_DIRECTORY: Path = SRC_ROOT_DIR / "config"
 GUI_CONFIG_FILE_PATH: Path = SRC_ROOT_DIR / "config" / "config.json"
 
 # Theme files
-DARK_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "styles" / "dark.qss"
-LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "resources" / "styles" / "light_theme.qss"
+DARK_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "dark.qss"
+LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "light.qss"
 
-ICON_PATH: Path = SRC_ROOT_DIR / "resources" / "icons" / "xml_256px.ico"
+ICON_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "matcha-latte.png"
 
 # Theme file icons
-DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "resources" / "images" / "dark.png"
-LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "resources" / "images" / "light.png"
+DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "dropdown_arrow_dark_14x14.png"
+LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "qrc" / "images" / "dropdown_arrow_light_14x14.png"
 
 
 class PreBuiltRegexManagerWidget(QWidget):
@@ -180,7 +180,9 @@ class PreBuiltRegexManagerWidget(QWidget):
             if xpath_expressions is not None:
                 # Clear list widgets in order to omit duplicate entries, because each load adds items xD
                 self.clear_list_widgets([self.ui.list_widget_edit_xpath_expressions])
-                self.ui.list_widget_edit_xpath_expressions.addItems(xpath_expressions)
+                self.ui.list_widget_edit_xpath_expressions.addItems(
+                    [self._expression_to_text(item) for item in xpath_expressions]
+                )
             else:
                 QMessageBox.warning(self, "Configuration not found", f"The configuration name '{config_name}' was not found in the configuration.")
 
@@ -329,6 +331,15 @@ class PreBuiltRegexManagerWidget(QWidget):
             list[str]: Returns a list of QItems from a QListWidget as strings.
         """
         return [widget.item(i).text() for i in range(widget.count())]
+
+    def _expression_to_text(self, item) -> str:
+        if isinstance(item, dict):
+            name = str(item.get("name", "")).strip()
+            expression = str(item.get("expression", "")).strip()
+            if name and expression:
+                return f"{name} = {expression}"
+            return expression
+        return str(item)
     
     def _is_duplicate(self, text: str, list_to_check: list) -> bool:
         """Checks if string to add to a QListWidget is not already in. Prevents from adding same duplicate strings to QListWidget.

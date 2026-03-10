@@ -182,7 +182,7 @@ class RegexBuilder:
             ("GET", "method"), 
             ("/index.html", "path")
         ]
-        Returns: r"(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?P<method>GET)(?P<path>/index\.html)"
+        Returns: r"(?P<ip>\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})(?P<method>GET)(?P<path>/index\\.html)"
         """
         if not samples_and_groups:
             return ""

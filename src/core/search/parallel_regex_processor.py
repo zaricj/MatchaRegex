@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QMutex, QMutexLocker
 import pandas as pd
+from core.patterns.pattern_profiles import PatternSpec
 
 # ============================================
 # SIGNALS
@@ -74,16 +75,16 @@ class FileProcessorWorker(QRunnable):
         """Process file content as a single multiline string"""
         results = []
 
-        for compiled_regex, (col_map, match_col) in zip(self.compiled_patterns, self.col_name_maps):
+        for compiled_regex, (pattern_spec, col_map) in zip(self.compiled_patterns, self.col_name_maps):
             for match in compiled_regex.finditer(text):
-                result = {"File": self.filepath.name}
+                result = {"File": self.filepath.name, "Pattern": pattern_spec.name}
 
                 if col_map:
                     groupdict = match.groupdict()
                     for group_name, col_name in col_map.items():
                         result[col_name] = groupdict.get(group_name) or ""
                 else:
-                    result[match_col] = match.group(0) or ""
+                    result["Match"] = match.group(0) or ""
 
                 results.append(result)
 
@@ -97,16 +98,16 @@ class FileProcessorWorker(QRunnable):
         """Process file line by line"""
         results = []
 
-        for line_number, line in enumerate(file_handle, start=1):
+        for line in file_handle:
             line = line.strip()
             if not line:
                 continue
 
-            for compiled_regex, (col_map, match_col) in zip(self.compiled_patterns, self.col_name_maps):
+            for compiled_regex, (pattern_spec, col_map) in zip(self.compiled_patterns, self.col_name_maps):
                 try:
                     for match in compiled_regex.finditer(line):
                         result = {"File": self.filepath.name,
-                                  "Line": line_number}
+                                  "Pattern": pattern_spec.name}
 
                         if col_map:
                             groupdict = match.groupdict()
@@ -114,7 +115,7 @@ class FileProcessorWorker(QRunnable):
                                 result[col_name] = groupdict.get(
                                     group_name) or ""
                         else:
-                            result[match_col] = match.group(0) or ""
+                            result["Match"] = match.group(0) or ""
 
                         results.append(result)
 
@@ -153,6 +154,28 @@ class ParallelRegexProcessor(QObject):
         self.total_files = 0
         self.files_mutex = QMutex()
         self.result_limit_reached = False
+
+    def _normalize_pattern_specs(self) -> list[PatternSpec]:
+        normalized: list[PatternSpec] = []
+        for index, pattern in enumerate(self.regex_patterns, start=1):
+            if isinstance(pattern, PatternSpec):
+                normalized.append(pattern)
+            elif isinstance(pattern, dict):
+                expression = str(pattern.get("expression", "")).strip()
+                if expression:
+                    normalized.append(
+                        PatternSpec(
+                            name=str(pattern.get("name", f"Pattern{index}")).strip() or f"Pattern{index}",
+                            expression=expression,
+                        )
+                    )
+            else:
+                expression = str(pattern).strip()
+                if expression:
+                    normalized.append(
+                        PatternSpec(name=f"Pattern{index}", expression=expression)
+                    )
+        return normalized
 
     @Slot()
     def run(self):
@@ -285,38 +308,39 @@ class ParallelRegexProcessor(QObject):
 
         flags = re.MULTILINE if self.multiline else 0
 
-        for regex in self.regex_patterns:
+        pattern_specs = self._normalize_pattern_specs()
+        for pattern_spec in pattern_specs:
             try:
-                compiled = re.compile(regex, flags)
-                group_names = self._extract_named_groups(regex)
+                compiled = re.compile(pattern_spec.expression, flags)
+                group_names = self._extract_named_groups(pattern_spec.expression)
                 compiled_patterns.append(compiled)
-                pattern_group_names.append(group_names)
+                pattern_group_names.append((pattern_spec, group_names))
             except re.error as e:
                 self.signals.message_critical.emit(
                     "Regex Error",
-                    f"Invalid regex pattern '{regex}': {e}"
+                    f"Invalid regex pattern '{pattern_spec.name}': {e}"
                 )
                 return [], []
 
         # Pre-build column name mappings
         all_group_names = set()
-        for group_names in pattern_group_names:
+        for _pattern_spec, group_names in pattern_group_names:
             all_group_names.update(group_names)
 
         use_pattern_prefix = len(all_group_names) < sum(
-            len(gn) for gn in pattern_group_names)
+            len(group_names) for _pattern_spec, group_names in pattern_group_names)
 
         col_name_maps = []
-        for pattern_idx, group_names in enumerate(pattern_group_names, 1):
+        for pattern_spec, group_names in pattern_group_names:
             if group_names:
                 if use_pattern_prefix:
                     col_map = {
-                        gn: f"Pattern{pattern_idx}_{gn}" for gn in group_names}
+                        gn: f"{pattern_spec.name}_{gn}" for gn in group_names}
                 else:
                     col_map = {gn: gn for gn in group_names}
             else:
                 col_map = None
-            col_name_maps.append((col_map, f"Pattern{pattern_idx}_Match"))
+            col_name_maps.append((pattern_spec, col_map))
 
         return compiled_patterns, col_name_maps
 

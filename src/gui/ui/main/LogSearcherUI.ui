@@ -22,7 +22,7 @@
    <string>MatchaRegex</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+   <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
     <normaloff>:/images/matcha-latte.png</normaloff>:/images/matcha-latte.png</iconset>
   </property>
   <property name="toolTip">
@@ -587,7 +587,7 @@ QFrame#output_frame {
                 <string>Convert</string>
                </property>
                <property name="icon">
-                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
                </property>
                <property name="iconSize">
@@ -799,7 +799,7 @@ QFrame#output_frame {
                 <string>Remove Selected</string>
                </property>
                <property name="icon">
-                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-selected.png</normaloff>:/images/remove-selected.png</iconset>
                </property>
               </widget>
@@ -813,7 +813,7 @@ QFrame#output_frame {
                 <string>Remove All</string>
                </property>
                <property name="icon">
-                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
@@ -1270,7 +1270,7 @@ QFrame#output_frame {
               <string>Start Search</string>
              </property>
              <property name="icon">
-              <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+              <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                <normaloff>:/images/search-file.png</normaloff>:/images/search-file.png</iconset>
              </property>
              <property name="iconSize">
@@ -1356,7 +1356,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
                 <string>Export to Excel</string>
                </property>
                <property name="icon">
-                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/export-to-file.png</normaloff>:/images/export-to-file.png</iconset>
                </property>
               </widget>
@@ -1370,7 +1370,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
                 <string>Clear Results</string>
                </property>
                <property name="icon">
-                <iconset resource="../../resources/ui/qrc/LogSearcher_resource.qrc">
+                <iconset resource="../../assets/qrc/LogSearcher_resource.qrc">
                  <normaloff>:/images/remove-all.png</normaloff>:/images/remove-all.png</iconset>
                </property>
               </widget>
@@ -1478,7 +1478,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
   </action>
  </widget>
  <resources>
-  <include location="../../resources/ui/qrc/LogSearcher_resource.qrc"/>
+  <include location="../../assets/qrc/LogSearcher_resource.qrc"/>
  </resources>
  <connections/>
 </ui>
