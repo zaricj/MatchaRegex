@@ -302,6 +302,9 @@ QFrame#output_frame {
         <fontweight>DemiBold</fontweight>
        </font>
       </property>
+      <property name="toolTip">
+       <string>Title</string>
+      </property>
       <property name="autoFillBackground">
        <bool>false</bool>
       </property>
@@ -445,6 +448,9 @@ QFrame#output_frame {
                  <fontweight>DemiBold</fontweight>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>Browse path for files to search</string>
+               </property>
                <property name="text">
                 <string>Browse</string>
                </property>
@@ -530,7 +536,7 @@ QFrame#output_frame {
                 </font>
                </property>
                <property name="text">
-                <string>Text to Convert:</string>
+                <string>Literal String:</string>
                </property>
               </widget>
              </item>
@@ -644,48 +650,48 @@ QFrame#output_frame {
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="button_add_regex_to_list_widget">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Segoe UI</family>
+                 <pointsize>10</pointsize>
+                 <fontweight>DemiBold</fontweight>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Add the entered Regex to the list.</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Add Pattern</string>
+               </property>
+               <property name="icon">
+                <iconset theme="QIcon::ThemeIcon::ListAdd"/>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="default">
+                <bool>false</bool>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_add_regex_to_list_widget">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Segoe UI</family>
-               <pointsize>10</pointsize>
-               <fontweight>DemiBold</fontweight>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Add the entered Regex to the list.</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string>Add Pattern to Search List</string>
-             </property>
-             <property name="icon">
-              <iconset theme="QIcon::ThemeIcon::ListAdd"/>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>16</width>
-               <height>16</height>
-              </size>
-             </property>
-             <property name="default">
-              <bool>false</bool>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>
@@ -1149,39 +1155,21 @@ QFrame#output_frame {
              </item>
              <item>
               <widget class="QCheckBox" name="checkbox_limit_rows">
+               <property name="toolTip">
+                <string>Limit on how many rows should be displayed</string>
+               </property>
                <property name="text">
                 <string>Limit Rows</string>
                </property>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
               <widget class="QCheckBox" name="checkbox_multiline_search">
-               <property name="text">
-                <string>Enable multiline regex search - (^ and $ match start/end of line)</string>
+               <property name="toolTip">
+                <string>^ matches start and $ matches end of line</string>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="Line" name="line">
-               <property name="orientation">
-                <enum>Qt::Orientation::Vertical</enum>
+               <property name="text">
+                <string>Enable multiline regex search</string>
                </property>
               </widget>
              </item>
@@ -1291,7 +1279,11 @@ QFrame#output_frame {
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="line_edit_filter_table_text"/>
+              <widget class="QLineEdit" name="line_edit_filter_table_text">
+               <property name="toolTip">
+                <string>Filter table data by text</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -1324,6 +1316,9 @@ QFrame#output_frame {
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
               <widget class="QComboBox" name="combobox_count_occurrences">
+               <property name="toolTip">
+                <string>Choose colum to use for counting it's occurrences</string>
+               </property>
                <property name="placeholderText">
                 <string>Choose a column to count occurrences...</string>
                </property>
@@ -1392,7 +1387,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
      <x>0</x>
      <y>0</y>
      <width>1206</width>
-     <height>27</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -1428,7 +1423,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
     <property name="title">
      <string>Manage</string>
     </property>
-    <addaction name="actionOpen_Autofill_Regex_Manager"/>
+    <addaction name="actionOpen_Regex_Expression_Manager"/>
    </widget>
    <widget class="QMenu" name="menuAutofill">
     <property name="title">
@@ -1471,7 +1466,7 @@ If the table is using a text filter, ONLY the filtered data will be exported!</s
     <string>Regex Cheatsheet</string>
    </property>
   </action>
-  <action name="actionOpen_Autofill_Regex_Manager">
+  <action name="actionOpen_Regex_Expression_Manager">
    <property name="text">
     <string>Open Regex Expression Manager</string>
    </property>

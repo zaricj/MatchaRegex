@@ -8,21 +8,14 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
-    QIcon, QImage, QKeySequence, QLinearGradient,
-    QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMainWindow,
-    QMenu, QMenuBar, QProgressBar, QPushButton,
-    QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
-    QTableView, QTextEdit, QVBoxLayout, QWidget)
-from gui.assets.qrc import LogSearcher_resource_rc
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
+    QSize, Qt)
+from PySide6.QtGui import (QAction, QCursor, QFont, QIcon)
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame,
+    QHBoxLayout, QLabel, QLineEdit,
+    QListView, QListWidget, QMenu, QMenuBar, QProgressBar, QPushButton,
+    QSizePolicy, QSpinBox, QStatusBar, QTableView,
+    QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -281,8 +274,8 @@ class Ui_MainWindow(object):
         self.actionOpen_Input_Folder.setObjectName(u"actionOpen_Input_Folder")
         self.actionRegex_Cheatsheet = QAction(MainWindow)
         self.actionRegex_Cheatsheet.setObjectName(u"actionRegex_Cheatsheet")
-        self.actionOpen_Autofill_Regex_Manager = QAction(MainWindow)
-        self.actionOpen_Autofill_Regex_Manager.setObjectName(u"actionOpen_Autofill_Regex_Manager")
+        self.actionOpen_Regex_Expression_Manager = QAction(MainWindow)
+        self.actionOpen_Regex_Expression_Manager.setObjectName(u"actionOpen_Regex_Expression_Manager")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.centralwidget.setStyleSheet(u"\n"
@@ -465,9 +458,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_02.addWidget(self.line_edit_regex)
 
-
-        self.verticalLayout_line_edits.addLayout(self.horizontalLayout_02)
-
         self.button_add_regex_to_list_widget = QPushButton(self.input_frame)
         self.button_add_regex_to_list_widget.setObjectName(u"button_add_regex_to_list_widget")
         self.button_add_regex_to_list_widget.setMinimumSize(QSize(0, 0))
@@ -478,7 +468,10 @@ class Ui_MainWindow(object):
         self.button_add_regex_to_list_widget.setIconSize(QSize(16, 16))
         self.button_add_regex_to_list_widget.setFlat(False)
 
-        self.verticalLayout_line_edits.addWidget(self.button_add_regex_to_list_widget)
+        self.horizontalLayout_02.addWidget(self.button_add_regex_to_list_widget)
+
+
+        self.verticalLayout_line_edits.addLayout(self.horizontalLayout_02)
 
 
         self.verticalLayout_left.addWidget(self.input_frame)
@@ -710,31 +703,15 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_table_settings.addWidget(self.checkbox_limit_rows)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_table_settings.addItem(self.horizontalSpacer)
-
-
-        self.verticalLayout_table_widget.addLayout(self.horizontalLayout_table_settings)
-
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.checkbox_multiline_search = QCheckBox(self.results_frame)
         self.checkbox_multiline_search.setObjectName(u"checkbox_multiline_search")
 
-        self.horizontalLayout.addWidget(self.checkbox_multiline_search)
-
-        self.line = QFrame(self.results_frame)
-        self.line.setObjectName(u"line")
-        self.line.setFrameShape(QFrame.Shape.VLine)
-        self.line.setFrameShadow(QFrame.Shadow.Sunken)
-
-        self.horizontalLayout.addWidget(self.line)
+        self.horizontalLayout_table_settings.addWidget(self.checkbox_multiline_search)
 
         self.checkbox_enable_parallel_processing = QCheckBox(self.results_frame)
         self.checkbox_enable_parallel_processing.setObjectName(u"checkbox_enable_parallel_processing")
 
-        self.horizontalLayout.addWidget(self.checkbox_enable_parallel_processing)
+        self.horizontalLayout_table_settings.addWidget(self.checkbox_enable_parallel_processing)
 
         self.button_parallel_processing_info = QPushButton(self.results_frame)
         self.button_parallel_processing_info.setObjectName(u"button_parallel_processing_info")
@@ -746,10 +723,10 @@ class Ui_MainWindow(object):
         self.button_parallel_processing_info.setAutoDefault(False)
         self.button_parallel_processing_info.setFlat(False)
 
-        self.horizontalLayout.addWidget(self.button_parallel_processing_info)
+        self.horizontalLayout_table_settings.addWidget(self.button_parallel_processing_info)
 
 
-        self.verticalLayout_table_widget.addLayout(self.horizontalLayout)
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout_table_settings)
 
         self.button_start_search = QPushButton(self.results_frame)
         self.button_start_search.setObjectName(u"button_start_search")
@@ -841,7 +818,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1206, 27))
+        self.menubar.setGeometry(QRect(0, 0, 1206, 26))
         self.menubar.setStyleSheet(u"\n"
 "     QMenuBar {\n"
 "         background-color: #2d2d30;\n"
@@ -883,7 +860,7 @@ class Ui_MainWindow(object):
         self.menuOpen.addAction(self.actionOpen_Output_Folder)
         self.menuHelp.addAction(self.actionRegex_101)
         self.menuHelp.addAction(self.actionRegex_Cheatsheet)
-        self.menuManage.addAction(self.actionOpen_Autofill_Regex_Manager)
+        self.menuManage.addAction(self.actionOpen_Regex_Expression_Manager)
 
         self.retranslateUi(MainWindow)
 
@@ -905,16 +882,22 @@ class Ui_MainWindow(object):
         self.actionRegex_101.setText(QCoreApplication.translate("MainWindow", u"Regex 101", None))
         self.actionOpen_Input_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Input Folder", None))
         self.actionRegex_Cheatsheet.setText(QCoreApplication.translate("MainWindow", u"Regex Cheatsheet", None))
-        self.actionOpen_Autofill_Regex_Manager.setText(QCoreApplication.translate("MainWindow", u"Open Regex Expression Manager", None))
+        self.actionOpen_Regex_Expression_Manager.setText(QCoreApplication.translate("MainWindow", u"Open Regex Expression Manager", None))
+#if QT_CONFIG(tooltip)
+        self.title_label.setToolTip(QCoreApplication.translate("MainWindow", u"Title", None))
+#endif // QT_CONFIG(tooltip)
         self.title_label.setText(QCoreApplication.translate("MainWindow", u"Log File Search & Analysis", None))
         self.section_label_1.setText(QCoreApplication.translate("MainWindow", u"Source Configuration", None))
         self.label_files_folder.setText(QCoreApplication.translate("MainWindow", u"Folder Path:", None))
         self.line_edit_files_folder.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select a folder containing log files to search...", None))
+#if QT_CONFIG(tooltip)
+        self.button_browse_folder.setToolTip(QCoreApplication.translate("MainWindow", u"Browse path for files to search", None))
+#endif // QT_CONFIG(tooltip)
         self.button_browse_folder.setText(QCoreApplication.translate("MainWindow", u"Browse", None))
         self.label_file_pattern.setText(QCoreApplication.translate("MainWindow", u"File Pattern:", None))
         self.line_edit_file_pattern.setPlaceholderText(QCoreApplication.translate("MainWindow", u"(Optional) Enter patterns to search only specific files (wildcard * accepted and comma-separated)", None))
         self.section_label_2.setText(QCoreApplication.translate("MainWindow", u"Search Pattern Setup", None))
-        self.label_string_to_regex.setText(QCoreApplication.translate("MainWindow", u"Text to Convert:", None))
+        self.label_string_to_regex.setText(QCoreApplication.translate("MainWindow", u"Literal String:", None))
         self.line_edit_string_to_regex.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter plain text to convert to regex pattern...", None))
         self.button_string_to_regex.setText(QCoreApplication.translate("MainWindow", u"Convert", None))
         self.label_regex.setText(QCoreApplication.translate("MainWindow", u"Regex Pattern:", None))
@@ -923,7 +906,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.button_add_regex_to_list_widget.setToolTip(QCoreApplication.translate("MainWindow", u"Add the entered Regex to the list.", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_add_regex_to_list_widget.setText(QCoreApplication.translate("MainWindow", u"Add Pattern to Search List", None))
+        self.button_add_regex_to_list_widget.setText(QCoreApplication.translate("MainWindow", u"Add Pattern", None))
         self.section_label_3.setText(QCoreApplication.translate("MainWindow", u"Active Search Patterns", None))
 #if QT_CONFIG(tooltip)
         self.button_regex_pattern_remove_selected.setToolTip(QCoreApplication.translate("MainWindow", u"Remove the selected Regex from the list", None))
@@ -951,8 +934,14 @@ class Ui_MainWindow(object):
         self.progress_bar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.section_label_4.setText(QCoreApplication.translate("MainWindow", u"Search Results & Configuration", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Rows:", None))
+#if QT_CONFIG(tooltip)
+        self.checkbox_limit_rows.setToolTip(QCoreApplication.translate("MainWindow", u"Limit on how many rows should be displayed", None))
+#endif // QT_CONFIG(tooltip)
         self.checkbox_limit_rows.setText(QCoreApplication.translate("MainWindow", u"Limit Rows", None))
-        self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search - (^ and $ match start/end of line)", None))
+#if QT_CONFIG(tooltip)
+        self.checkbox_multiline_search.setToolTip(QCoreApplication.translate("MainWindow", u"^ matches start and $ matches end of line", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkbox_multiline_search.setText(QCoreApplication.translate("MainWindow", u"Enable multiline regex search", None))
 #if QT_CONFIG(tooltip)
         self.checkbox_enable_parallel_processing.setToolTip(QCoreApplication.translate("MainWindow", u"Enables parallel processing, useful for big files.", None))
 #endif // QT_CONFIG(tooltip)
@@ -966,6 +955,12 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.button_start_search.setText(QCoreApplication.translate("MainWindow", u"Start Search", None))
         self.label_filter_text.setText(QCoreApplication.translate("MainWindow", u"Filter Text:", None))
+#if QT_CONFIG(tooltip)
+        self.line_edit_filter_table_text.setToolTip(QCoreApplication.translate("MainWindow", u"Filter table data by text", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.combobox_count_occurrences.setToolTip(QCoreApplication.translate("MainWindow", u"Choose colum to use for counting it's occurrences", None))
+#endif // QT_CONFIG(tooltip)
         self.combobox_count_occurrences.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Choose a column to count occurrences...", None))
 #if QT_CONFIG(tooltip)
         self.button_count_occurrences.setToolTip(QCoreApplication.translate("MainWindow", u"Count occurrences based on the key and display the new data into the table", None))
