@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGroupBox,
     QHBoxLayout, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QPushButton, QSizePolicy, QVBoxLayout,
     QWidget)
-from gui.assets.qrc from gui.assets.qrc import LogSearcher_resource_rc
+from gui.assets.qrc import LogSearcher_resource_rc
 
 class Ui_PreBuiltRegexManagerWidget(object):
     def setupUi(self, PreBuiltRegexManagerWidget):

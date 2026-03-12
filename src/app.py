@@ -4,7 +4,6 @@ from gui.utils.helpers import HelperMethods
 from services.config.config_handler import ConfigHandler
 from PySide6.QtGui import QPixmap, QGuiApplication, QAction
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QMessageBox,
     QFileDialog,
@@ -17,9 +16,7 @@ from PySide6.QtCore import (
     QTextStream,
     QSettings,
     QIODevice,
-    Qt
 )
-import sys
 from pathlib import Path
 from core.patterns.pattern_profiles import PatternProfileService, PatternSpec
 from services.workers.thread_worker import Worker
@@ -33,7 +30,6 @@ GUI_CONFIG_FILE_PATH: Path = GUI_CONFIG_DIRECTORY / "config.json"
 # ----------------------------
 # Helpers for window state
 # ----------------------------
-
 
 def save_window_state(window: QMainWindow, settings: QSettings):
     settings.setValue("geometry", window.saveGeometry())
