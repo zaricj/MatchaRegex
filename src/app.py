@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileDialog,
     QInputDialog,
+    QSplitter
 )
 from PySide6.QtCore import (
     Slot,
@@ -15,7 +16,7 @@ from PySide6.QtCore import (
     QFile,
     QTextStream,
     QSettings,
-    QIODevice,
+    QIODevice
 )
 from pathlib import Path
 from core.patterns.pattern_profiles import PatternProfileService, PatternSpec
@@ -60,6 +61,14 @@ def restore_window_state(window: QMainWindow, settings: QSettings):
             max(available.top(), min(win_geom.top(),
                 available.bottom() - window.height()))
         )
+    
+def save_splitter_state(splitter: QSplitter, settings: QSettings, key: str = "splitterState"):
+    settings.setValue(key, splitter.saveState())
+
+def restore_splitter_state(splitter: QSplitter, settings: QSettings, key: str = "splitterState"):
+    state = settings.value(key)
+    if state:
+        splitter.restoreState(state)
 
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
