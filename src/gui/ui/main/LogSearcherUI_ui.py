@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame,
     QListView, QListWidget, QMenu, QMenuBar, QProgressBar, QPushButton,
     QSizePolicy, QSpinBox, QStatusBar, QTableView,
     QTextEdit, QVBoxLayout, QWidget)
+from gui.assets.qrc import LogSearcher_resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

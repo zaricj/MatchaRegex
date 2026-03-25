@@ -119,10 +119,12 @@ class RegexSearchTask:
 
         # 2. Compile Patterns as BYTES
         # MULTILINE is necessary for ^ to work on every line of a 10GB file
-        flags = re.MULTILINE
+        
+        flags = 0
+        
         if self.multiline:
-            flags |= re.DOTALL
-
+            flags = re.MULTILINE
+        
         compiled_list = []
         for spec in self._normalize_pattern_specs():
             try:

@@ -74,9 +74,10 @@ class SignalHandlerMixin:
                 self.ui.combobox_count_occurrences.clear()
                 self.ui.combobox_count_occurrences.addItems(
                     sorted(results_df.columns.tolist()))
+                self._set_visible_of_widgets(True)
             else:
                 self.ui.program_output.append(
-                    "Search completed, but no matches were found.")
+                    "Search completed, but no matches were found.\nTry enabling multiline searching.")
                 QMessageBox.information(
                     self, "Search Complete", "No matches found.")
         except Exception as e:
@@ -86,7 +87,6 @@ class SignalHandlerMixin:
                                  f"Failed to update results table: {str(e)}")
 
         self._enable_start_button(True)
-        self._set_visible_of_widgets(True)
         self.handle_progress_bar(0)
 
         # Release worker reference

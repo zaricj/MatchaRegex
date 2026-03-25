@@ -515,7 +515,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
                 self._active_worker = regex_processor_thread
 
-                self.ui.program_output.append("Starting worker thread...")
                 self.connect_regex_processor_signals(
                     regex_processor_thread)  # Connected signals and slots
 
