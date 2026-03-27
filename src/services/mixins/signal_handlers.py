@@ -7,7 +7,7 @@ from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtCore import Slot, QUrl
 from PySide6.QtWidgets import QMessageBox
 from services.workers.thread_worker import Worker
-from gui.utils.helpers import HelperMethods
+from services.utils.helpers import HelperMethods
 import pandas as pd
 from pathlib import Path
 from typing import TYPE_CHECKING

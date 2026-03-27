@@ -8,12 +8,18 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
-    QSize, Qt)
-from PySide6.QtGui import (QAction, QCursor, QFont, QIcon)
-from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame,
-    QHBoxLayout, QLabel, QLineEdit,
-    QListView, QListWidget, QMenu, QMenuBar, QProgressBar, QPushButton,
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QListView, QListWidget, QListWidgetItem, QMainWindow,
+    QMenu, QMenuBar, QProgressBar, QPushButton,
     QSizePolicy, QSpinBox, QStatusBar, QTableView,
     QTextEdit, QVBoxLayout, QWidget)
 from gui.assets.qrc import LogSearcher_resource_rc
@@ -729,6 +735,24 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_table_widget.addLayout(self.horizontalLayout_table_settings)
 
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.label_segmentation_mode = QLabel(self.results_frame)
+        self.label_segmentation_mode.setObjectName(u"label_segmentation_mode")
+        sizePolicy6.setHeightForWidth(self.label_segmentation_mode.sizePolicy().hasHeightForWidth())
+        self.label_segmentation_mode.setSizePolicy(sizePolicy6)
+
+        self.horizontalLayout.addWidget(self.label_segmentation_mode)
+
+        self.combobox_segmentation_mode = QComboBox(self.results_frame)
+        self.combobox_segmentation_mode.addItem("")
+        self.combobox_segmentation_mode.addItem("")
+        self.combobox_segmentation_mode.addItem("")
+        self.combobox_segmentation_mode.addItem("")
+        self.combobox_segmentation_mode.setObjectName(u"combobox_segmentation_mode")
+
+        self.horizontalLayout.addWidget(self.combobox_segmentation_mode)
+
         self.button_start_search = QPushButton(self.results_frame)
         self.button_start_search.setObjectName(u"button_start_search")
         sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
@@ -744,7 +768,10 @@ class Ui_MainWindow(object):
         self.button_start_search.setIcon(icon7)
         self.button_start_search.setIconSize(QSize(24, 24))
 
-        self.verticalLayout_table_widget.addWidget(self.button_start_search)
+        self.horizontalLayout.addWidget(self.button_start_search)
+
+
+        self.verticalLayout_table_widget.addLayout(self.horizontalLayout)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -819,7 +846,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1206, 26))
+        self.menubar.setGeometry(QRect(0, 0, 1206, 27))
         self.menubar.setStyleSheet(u"\n"
 "     QMenuBar {\n"
 "         background-color: #2d2d30;\n"
@@ -951,6 +978,12 @@ class Ui_MainWindow(object):
         self.button_parallel_processing_info.setToolTip(QCoreApplication.translate("MainWindow", u"Show parallel processing help information.", None))
 #endif // QT_CONFIG(tooltip)
         self.button_parallel_processing_info.setText("")
+        self.label_segmentation_mode.setText(QCoreApplication.translate("MainWindow", u"Segmentation mode:", None))
+        self.combobox_segmentation_mode.setItemText(0, QCoreApplication.translate("MainWindow", u"Auto", None))
+        self.combobox_segmentation_mode.setItemText(1, QCoreApplication.translate("MainWindow", u"Timestamp", None))
+        self.combobox_segmentation_mode.setItemText(2, QCoreApplication.translate("MainWindow", u"Exception", None))
+        self.combobox_segmentation_mode.setItemText(3, QCoreApplication.translate("MainWindow", u"Line", None))
+
 #if QT_CONFIG(tooltip)
         self.button_start_search.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Start search with the current settings and display data into the table.</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)

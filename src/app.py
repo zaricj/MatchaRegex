@@ -1,6 +1,6 @@
 from gui.ui.main.LogSearcherUI_ui import Ui_MainWindow
-from gui.mixins.signal_handlers import SignalHandlerMixin
-from gui.utils.helpers import HelperMethods
+from services.mixins.signal_handlers import SignalHandlerMixin
+from services.utils.helpers import HelperMethods
 from services.config.config_handler import ConfigHandler
 from PySide6.QtGui import QPixmap, QGuiApplication, QAction
 from PySide6.QtWidgets import (
@@ -281,7 +281,6 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             )
 
     # === Menu bar slots === #
-    # TODO for slots on_openOutputDirectory and on_openInputDirectory, need to perform a check, when directory = "", it opens the root folder of the main.py.
 
     @Slot()
     def on_openInputDirectory(self):
@@ -452,6 +451,9 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
         try:
             # Clear previous output
             self.ui.program_output.clear()
+            
+            # Segmentation mode selection
+            segmentation_mode = self.ui.combobox_segmentation_mode.currentText()
 
             # Validate inputs
             folder_path = Path(self.ui.line_edit_files_folder.text().strip())
@@ -504,6 +506,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 # Create and start the search thread non parallel version
                 regex_processor_thread = Worker(
                     run_regex_search,
+                    segmentation_mode=segmentation_mode,
                     regex_patterns=regex_patterns,
                     folder_path=folder_path,
                     file_patterns=file_patterns,
