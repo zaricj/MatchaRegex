@@ -17,9 +17,7 @@ class ParserEngine:
             for name, pattern in self.patterns.items():
                 if pattern.search(block):
                     results.append({
-                        "type": name,
                         "message": self._extract_main(block),
-                        "caused_by": self._extract_cause(block),
                         "raw": block
                     })
 
@@ -27,7 +25,3 @@ class ParserEngine:
 
     def _extract_main(self, block: str) -> str:
         return block.splitlines()[0] if block else ""
-
-    def _extract_cause(self, block: str) -> str:
-        m = re.search(r'Caused by:\s*(.*)', block)
-        return m.group(1) if m else ""
