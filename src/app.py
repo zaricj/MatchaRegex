@@ -1,27 +1,21 @@
-from gui.ui.main.LogSearcherUI_ui import Ui_MainWindow
-from services.mixins.signal_handlers import SignalHandlerMixin
-from services.utils.helpers import HelperMethods
-from services.config.config_handler import ConfigHandler
-from PySide6.QtGui import QPixmap, QGuiApplication, QAction
+from pathlib import Path
+
+from PySide6.QtCore import QFile, QIODevice, QSettings, QTextStream, QThreadPool, Slot
+from PySide6.QtGui import QAction, QGuiApplication, QPixmap
 from PySide6.QtWidgets import (
-    QMainWindow,
-    QMessageBox,
     QFileDialog,
     QInputDialog,
-    QSplitter
+    QMainWindow,
+    QMessageBox,
+    QSplitter,
 )
-from PySide6.QtCore import (
-    Slot,
-    QThreadPool,
-    QFile,
-    QTextStream,
-    QSettings,
-    QIODevice
-)
-from pathlib import Path
-from core.patterns.pattern_profiles import PatternProfileService, PatternSpec
-from services.workers.thread_worker import Worker
 
+from core.patterns.pattern_profiles import PatternProfileService, PatternSpec
+from gui.ui.main.LogSearcherUI_ui import Ui_MainWindow
+from services.config.config_handler import ConfigHandler
+from services.mixins.signal_handlers import SignalHandlerMixin
+from services.utils.helpers import HelperMethods
+from services.workers.thread_worker import Worker
 
 # Constants
 CURRENT_DIR = Path(__file__).parent
@@ -277,7 +271,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             file.close()
         except Exception as ex:
             QMessageBox.critical(
-                self, "Theme load error", f"Failed to load theme: {str(ex)}"
+                self, "Theme load error", f"Failed to load theme: {ex!s}"
             )
 
     # === Menu bar slots === #
@@ -370,7 +364,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             QMessageBox.critical(
                 self,
                 "Pattern Import Error",
-                f"Failed to import pattern profile: {str(ex)}",
+                f"Failed to import pattern profile: {ex!s}",
             )
 
     @Slot()
@@ -395,8 +389,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                 QMessageBox.information(
                     self, "Input Warning", "Please enter a valid sample string.")
         except Exception as ex:
-            QMessageBox.critical(self, "Convert String Error",
-                                 f"An error occurred in string conversion: {str(ex)}")
+            QMessageBox.critical(self, "Convert String Error", f"An error occurred in string conversion: {ex!s}")
 
     @Slot()
     def add_regexToListWidget(self):  # Handler for "Add Regex to List" button
@@ -419,10 +412,10 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
                     f"Added {regex_input} regex pattern to the list.", 5000)
             else:
                 QMessageBox.information(
-                    self, "Input Warning", "Please enter a regex pattern first in the input field.")
+                    self, "Missing regex pattern", "Please enter a regex pattern in the input field.")
         except Exception as ex:
             QMessageBox.critical(
-                self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {str(ex)}")
+                self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {ex!s}")
 
     @Slot()
     # Handler for "Remove Selected" button
@@ -525,7 +518,7 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
         except Exception as ex:
             QMessageBox.critical(self, "Search Error",
-                                 f"An error occurred in search: {str(ex)}")
+                                 f"An error occurred in search: {ex!s}")
 
     @Slot()
     def on_clearResults(self):  # Handler for clear table widget
