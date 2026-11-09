@@ -12,7 +12,7 @@ def fix_qrc_import():
     ]
 
     for ui_file in ui_files:
-        with open(ui_file, "r") as file:
+        with open(ui_file, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         modified = False
@@ -26,7 +26,7 @@ def fix_qrc_import():
                 break
 
         if modified:
-            with open(ui_file, "w") as file:
+            with open(ui_file, "w", encoding="utf-8") as file:
                 file.writelines(lines)
 
 

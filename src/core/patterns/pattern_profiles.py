@@ -18,6 +18,7 @@ class PatternSpec:
     """
     name: str
     expression: str
+    header: str = ""   # CSV/Excel column header when the regex has no named groups
 
     def group_names(self) -> list[str]:
         """Return the list of named groups declared in ``expression``, in order."""

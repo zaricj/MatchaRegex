@@ -1,637 +1,702 @@
+import os
+import re
+import sys
 from pathlib import Path
 
-from PySide6.QtCore import QFile, QIODevice, QSettings, QTextStream, QThreadPool, Slot
-from PySide6.QtGui import QAction, QGuiApplication, QPixmap
-from PySide6.QtWidgets import (
-    QFileDialog,
-    QInputDialog,
-    QMainWindow,
-    QMessageBox,
-    QSplitter,
-)
+from PySide6.QtCore import QProcess, QSettings, QSortFilterProxyModel, Qt, QThreadPool, QTimer, Slot
+from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QGuiApplication, QPixmap
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QMainWindow, QMenu, QMessageBox, QSplitter
 
+from app_paths import APP_ICON_FILE, CONFIG_DIR, CONFIG_FILE, DARK_THEME_FILE, LIGHT_THEME_FILE
+from core.models.results_model import ResultsTableModel
 from core.patterns.pattern_profiles import PatternProfileService, PatternSpec
+from core.patterns.regex_builder import RegexBuilder
+from core.search.engine import PatternDef, PatternError, SearchOptions, compile_patterns
 from gui.ui.main.LogSearcherUI_ui import Ui_MainWindow
 from services.config.config_handler import ConfigHandler
 from services.mixins.signal_handlers import SignalHandlerMixin
 from services.utils.helpers import HelperMethods
+from services.workers.search_worker import SearchWorker
 from services.workers.thread_worker import Worker
 
-# Constants
-CURRENT_DIR = Path(__file__).parent
-GUI_CONFIG_DIRECTORY: Path = CURRENT_DIR / "config"
-GUI_CONFIG_FILE_PATH: Path = GUI_CONFIG_DIRECTORY / "config.json"
+AUTOFILL_KEY = "custom_regex_autofill"
+
+# Legacy config entries were sometimes saved as "name = expression" strings.
+_LEGACY_ENTRY = re.compile(r"^(?P<name>[A-Za-z_]\w*) = (?P<expression>.+)$", re.DOTALL)
+
+EXPORT_FILTER_XLSX = "Excel Workbook (*.xlsx)"
+EXPORT_FILTER_CSV = "CSV, comma separated (*.csv)"
+EXPORT_FILTER_CSV_SEMI = "CSV, semicolon separated - Excel in EU locales (*.csv)"
+
 
 # ----------------------------
 # Helpers for window state
 # ----------------------------
 
-def save_window_state(window: QMainWindow, settings: QSettings):
-    settings.setValue("geometry", window.saveGeometry())
-    settings.setValue("windowState", window.saveState())
+LAYOUT_CLASSIC = "classic"
+LAYOUT_MODERN = "modern"
+LAYOUT_SETTING = "ui/layout"
+MODERN_THEME_FILE = DARK_THEME_FILE.with_name("modern.qss")
 
 
-def restore_window_state(window: QMainWindow, settings: QSettings):
-    geometry = settings.value("geometry")
+def resolve_ui_layout(settings: QSettings) -> str:
+    """Command line (--alt-ui / --classic-ui) overrides the saved choice."""
+    if "--alt-ui" in sys.argv:
+        return LAYOUT_MODERN
+    if "--classic-ui" in sys.argv:
+        return LAYOUT_CLASSIC
+    value = str(settings.value(LAYOUT_SETTING, LAYOUT_CLASSIC))
+    return value if value in (LAYOUT_CLASSIC, LAYOUT_MODERN) else LAYOUT_CLASSIC
+
+
+def save_window_state(window: QMainWindow, settings: QSettings, prefix: str = ""):
+    settings.setValue(f"{prefix}geometry", window.saveGeometry())
+    settings.setValue(f"{prefix}windowState", window.saveState())
+    for splitter in window.findChildren(QSplitter):
+        if splitter.objectName():
+            settings.setValue(f"{prefix}splitter/{splitter.objectName()}", splitter.saveState())
+
+
+def restore_window_state(window: QMainWindow, settings: QSettings, prefix: str = ""):
+    geometry = settings.value(f"{prefix}geometry")
     if geometry:
         window.restoreGeometry(geometry)
-    state = settings.value("windowState")
+    state = settings.value(f"{prefix}windowState")
     if state:
         window.restoreState(state)
+    for splitter in window.findChildren(QSplitter):
+        splitter_state = settings.value(f"{prefix}splitter/{splitter.objectName()}") if splitter.objectName() else None
+        if splitter_state:
+            splitter.restoreState(splitter_state)
 
-    # Clamp window into current screen space
-    screen = QGuiApplication.primaryScreen()
+    # Clamp the window into the visible screen space (e.g. monitor unplugged).
+    screen = window.screen() or QGuiApplication.primaryScreen()
+    if screen is None:
+        return
     available = screen.availableGeometry()
     win_geom = window.frameGeometry()
-
-    if not available.contains(win_geom, proper=False):
-        window.resize(
-            min(win_geom.width(), available.width()),
-            min(win_geom.height(), available.height())
-        )
+    if not available.contains(win_geom):
+        window.resize(min(win_geom.width(), available.width()), min(win_geom.height(), available.height()))
         window.move(
-            max(available.left(), min(win_geom.left(),
-                available.right() - window.width())),
-            max(available.top(), min(win_geom.top(),
-                available.bottom() - window.height()))
+            max(available.left(), min(win_geom.left(), available.right() - window.width())),
+            max(available.top(), min(win_geom.top(), available.bottom() - window.height())),
         )
-    
-def save_splitter_state(splitter: QSplitter, settings: QSettings, key: str = "splitterState"):
-    settings.setValue(key, splitter.saveState())
-
-def restore_splitter_state(splitter: QSplitter, settings: QSettings, key: str = "splitterState"):
-    state = settings.value(key)
-    if state:
-        splitter.restoreState(state)
 
 
 class MainWindow(QMainWindow, SignalHandlerMixin):
     def __init__(self):
         super().__init__()
 
-        # Create and set up the UI
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-
-        # Setup settings
         self.settings = QSettings("Jovan", "MatchaRegex")
+        self.ui_layout = resolve_ui_layout(self.settings)
+        if self.ui_layout == LAYOUT_MODERN:
+            from gui.ui.main.modern_main_window_ui import Ui_ModernMainWindow
+            self.ui = Ui_ModernMainWindow()
+        else:
+            self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        # Each layout remembers its own geometry/splitters.
+        self._state_prefix = "" if self.ui_layout == LAYOUT_CLASSIC else "modern/"
+        restore_window_state(self, self.settings, self._state_prefix)
 
-        # Restore geometry safely
-        restore_window_state(self, self.settings)
-
-        from core.patterns.regex_builder import RegexBuilder
+        # Single shared config handler (the regex manager dialog uses this one too).
+        self.config_handler = ConfigHandler(CONFIG_DIR, CONFIG_FILE, main_window=self)
         self.helper = HelperMethods(main_window=self)
         self.regex_builder = RegexBuilder(main_window=self)
 
-        self._active_worker = None
         self.regex_patterns: list[PatternSpec] = []
+        self._pattern_counter = 0
         self.output_file_path: str = ""
-        self.current_results: list[dict[str, str]] = []
-        # Remember last export directory
-        self.last_export_directory: str = self.settings.value(
-            "last_export_directory", str(Path.home()))
+        self.last_export_directory: str = str(self.settings.value("last_export_directory", str(Path.home())))
+        self._search_worker: SearchWorker | None = None
+        self._export_worker: Worker | None = None
+        self._regex_manager = None
 
-        self.config_handler = ConfigHandler(
-            main_window=self,
-            config_directory=GUI_CONFIG_DIRECTORY,
-            config_file_name=GUI_CONFIG_FILE_PATH,
-        )
+        # Theme / icon (attributes are also read by the regex manager dialog)
+        self.dark_theme_file = DARK_THEME_FILE
+        self.light_theme_file = LIGHT_THEME_FILE
+        self.app_icon = QPixmap(str(APP_ICON_FILE))
+        self.current_app_theme = self.settings.value("Application_Theme", "dark.qss")
 
-        # Current working dir
-        cwd = Path(__file__).parent
+        # Results: model → filter/sort proxy → view
+        self.results_model = ResultsTableModel(parent=self)
+        self.summary_model = ResultsTableModel(parent=self)
+        self.proxy_model = QSortFilterProxyModel(self)
+        self.proxy_model.setSourceModel(self.results_model)
+        self.proxy_model.setFilterKeyColumn(-1)  # all columns
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        table = self.ui.table_widget_results
+        table.setModel(self.proxy_model)
+        table.horizontalHeader().setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+        table.setSortingEnabled(True)
 
-        # Theme files dark & light
-        self.dark_theme_file = cwd / "gui" / "assets" / "styles" / "dark.qss"
-        self.light_theme_file = cwd / "gui" / "assets" / "styles" / "light.qss"
+        # Debounce timers
+        self._filter_timer = QTimer(self, singleShot=True, interval=250)
+        self._filter_timer.timeout.connect(self._apply_table_filter)
+        self._folder_info_timer = QTimer(self, singleShot=True, interval=400)
+        self._folder_info_timer.timeout.connect(
+            lambda: self.helper.show_relevant_info(self.ui.line_edit_files_folder.text()))
 
-        # GUI Window Icon
-        app_icon_path = cwd / "gui" / "assets" / "images" / "matcha-latte.png"
-        self.app_icon = QPixmap(app_icon_path.__str__())
+        self.thread_pool = QThreadPool(self)  # used for exports
+        if self.ui_layout == LAYOUT_CLASSIC:
+            self.ui.button_search_result_export_to_csv.setText("Export (Excel / CSV)")
 
-        # Current app theme, saved to QSettings
-        self.current_app_theme = self.settings.value(
-            "Application_Theme", "dark.qss")
-        theme_path = self.dark_theme_file if self.current_app_theme == "dark.qss" else self.light_theme_file
-
-        self.init_thread_pool()
         self.setup_application()
-        self._initialize_theme(theme_path)
+        if self.ui_layout == LAYOUT_MODERN:
+            self._initialize_theme(MODERN_THEME_FILE)
+        else:
+            self._initialize_theme(DARK_THEME_FILE if self.current_app_theme == "dark.qss" else LIGHT_THEME_FILE)
 
     def setup_application(self):
-        """Initialize the application components"""
-        self.connect_ui_events()  # From mixin (src/modules/signal_handlers.py)
-        self.connect_menu_bar_actions()  # Menubar actions events connector
-        self._install_dynamic_menu_actions()
-        self._update_autofill_menu()
+        self.connect_ui_events()
+        self.connect_menu_bar_actions()
         self.connect_helper_method_signals(self.helper)
-        # Hide count occurrences widgets initially
+        if hasattr(self.ui.list_widget_regex, "header_edited"):
+            self.ui.list_widget_regex.header_edited.connect(self._on_pattern_header_edited)
+        self.action_import_pattern_json = QAction("Import Pattern Profile JSON", self)
+        self.action_import_pattern_json.triggered.connect(self.on_importPatternProfileJson)
+        self._update_autofill_menu()
+        self._install_view_menu()
+        self.on_checkBoxCheckedLimitRows()
         self._set_visible_of_widgets(False)
+        if self.ui_layout == LAYOUT_MODERN:
+            self.ui.progress_bar.hide()
 
-    def _install_dynamic_menu_actions(self):
-        self.action_import_pattern_json = QAction(
-            "Import Pattern Profile JSON", self
+        # Empty state + row count badge (only layouts that provide them).
+        for signal in (self.proxy_model.rowsInserted, self.proxy_model.rowsRemoved,
+                       self.proxy_model.modelReset, self.proxy_model.layoutChanged):
+            signal.connect(self._update_results_state)
+        self._update_results_state()
+
+    # ======================================================================
+    # Layout switching
+    # ======================================================================
+
+    def _install_view_menu(self):
+        menu = QMenu("&View", self)
+        group = QActionGroup(self)
+        group.setExclusive(True)
+        for layout, label in ((LAYOUT_CLASSIC, "&Classic Layout"), (LAYOUT_MODERN, "&Alternative Layout")):
+            action = QAction(label, self, checkable=True)
+            action.setChecked(layout == self.ui_layout)
+            action.triggered.connect(lambda _checked=False, value=layout: self._switch_layout(value))
+            group.addAction(action)
+            menu.addAction(action)
+        self.ui.menubar.insertMenu(self.ui.menuHelp.menuAction(), menu)
+        self.menu_view = menu
+
+    def _switch_layout(self, layout: str):
+        if layout == self.ui_layout:
+            return
+        self.settings.setValue(LAYOUT_SETTING, layout)
+        name = "alternative" if layout == LAYOUT_MODERN else "classic"
+        reply = QMessageBox.question(
+            self, "Switch Layout",
+            f"The {name} layout will be used after a restart.\n\nRestart MatchaRegex now?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
         )
-        self.action_import_pattern_json.triggered.connect(
-            self.on_importPatternProfileJson
-        )
-        self.ui.menuAutofill.addSeparator()
-        self.ui.menuAutofill.addAction(self.action_import_pattern_json)
+        if reply == QMessageBox.StandardButton.Yes and self.close():
+            args = [a for a in sys.argv if a not in ("--alt-ui", "--classic-ui")]
+            if Path(sys.executable).stem.lower().startswith("python"):
+                QProcess.startDetached(sys.executable, args)          # running from source
+            else:
+                QProcess.startDetached(sys.executable, args[1:])      # compiled executable
 
-    def init_thread_pool(self):
-        # Initialize the thread pool
-        self.thread_pool = QThreadPool()
-        thread_perf = self.thread_pool_calculated(performance=1)
-        # Optional: Set maximum thread count (default is system dependent)
-        self.thread_pool.setMaxThreadCount(
-            thread_perf)  # 0 = low, 1 = medium, 2 = high
-        self.ui.statusbar.showMessage(
-            f"Thread Pool with {thread_perf} threads initialized.", 10000)
+    @Slot()
+    def _update_results_state(self, *_):
+        rows = self.proxy_model.rowCount()
+        stack = getattr(self.ui, "results_stack", None)
+        if stack is not None:
+            has_columns = self.proxy_model.columnCount() > 0
+            stack.setCurrentWidget(self.ui.table_widget_results if has_columns else self.ui.results_empty_state)
+        badge = getattr(self.ui, "label_result_count", None)
+        if badge is not None:
+            total = self.proxy_model.sourceModel().rowCount() if self.proxy_model.sourceModel() else 0
+            badge.setText(f"{rows:,} of {total:,}" if rows != total else f"{total:,} rows")
+            badge.setVisible(self.proxy_model.columnCount() > 0)
 
-    def thread_pool_calculated(self, performance: int = 1) -> int:
-        """Returns the calculated thread count based on the system's CPU cores.
-        - Low = 1/4 of max threads.
-        - Medium = half of max threads.
-        - High = Uses all available threads.
+    # ======================================================================
+    # Patterns
+    # ======================================================================
 
-        Args:
-            performance (int): Performance level (0 = low, 1 = medium, 2 = high). Default is 1 (medium).
+    @staticmethod
+    def parallel_worker_count() -> int:
+        """Half of the logical CPUs, at least 1."""
+        return max(1, (os.cpu_count() or 2) // 2)
 
-        Returns:
-            int: Performance-based thread count. 
-        """
-        max_threads = self.thread_pool.maxThreadCount()
-        if performance == 2:  # High performance
-            return max_threads
+    def _next_pattern_name(self) -> str:
+        existing = {p.name for p in self.regex_patterns}
+        while True:
+            self._pattern_counter += 1
+            name = f"Pattern{self._pattern_counter}"
+            if name not in existing:
+                return name
 
-        if performance == 1:  # Medium performance
-            return max_threads // 2
+    @staticmethod
+    def _validate_regex(expression: str) -> str | None:
+        try:
+            re.compile(expression)
+            return None
+        except re.error as exc:
+            return str(exc)
 
-        if performance == 0:  # Low performance
-            return max_threads // 4
-
-    def _update_autofill_menu(self):
-        """Update the autofill menu with custom pre-built xpaths and csv headers"""
-        self.ui.menuAutofill.clear()
-
-        custom_autofill = self.config_handler.get("custom_regex_autofill", {})
-        for key, value in custom_autofill.items():
-            action = QAction(key, self)
-            action.triggered.connect(
-                lambda checked, v=value: self._set_autofill_regex_expressions(
-                    v.get("regex_expression", [])
-                )
-            )
-            self.ui.menuAutofill.addAction(action)
-        if hasattr(self, "action_import_pattern_json"):
-            self.ui.menuAutofill.addSeparator()
-            self.ui.menuAutofill.addAction(self.action_import_pattern_json)
-
-    def _format_pattern_label(self, pattern_name: str, expression: str) -> str:
-        return f"{pattern_name} = {expression}"
-
-    def _append_pattern(self, pattern_spec: PatternSpec):
-        if any(
-            existing.name == pattern_spec.name
-            and existing.expression == pattern_spec.expression
-            for existing in self.regex_patterns
-        ):
+    def _append_pattern(self, pattern_spec: PatternSpec) -> bool:
+        if any(p.name == pattern_spec.name and p.expression == pattern_spec.expression for p in self.regex_patterns):
             return False
-
         self.regex_patterns.append(pattern_spec)
-        self.ui.list_widget_regex.addItem(
-            self._format_pattern_label(pattern_spec.name, pattern_spec.expression)
-        )
+        pattern_list = self.ui.list_widget_regex
+        if hasattr(pattern_list, "add_pattern"):  # alternative layout: Header | Regex columns
+            pattern_list.add_pattern(pattern_spec.name, pattern_spec.expression, pattern_spec.header)
+        else:
+            pattern_list.addItem(f"{pattern_spec.name} = {pattern_spec.expression}")
         return True
 
+    @Slot(int, str)
+    def _on_pattern_header_edited(self, row: int, header: str):
+        if 0 <= row < len(self.regex_patterns):
+            self.regex_patterns[row].header = header
+            shown = header or "Match"
+            self.ui.statusbar.showMessage(f"Matches of '{self.regex_patterns[row].name}' go to column '{shown}'.", 5000)
+
+    def _pattern_from_entry(self, entry) -> PatternSpec | None:
+        """Accepts {"name", "expression"[, "header"]} dicts, plain regex strings and legacy "name = expr" strings."""
+        header = ""
+        if isinstance(entry, dict):
+            expression = str(entry.get("expression", "")).strip()
+            name = str(entry.get("name", "")).strip()
+            header = str(entry.get("header", "") or "").strip()
+        else:
+            expression = str(entry).strip()
+            name = ""
+            legacy = _LEGACY_ENTRY.match(expression)
+            if legacy and self._validate_regex(legacy["expression"]) is None:
+                name, expression = legacy["name"], legacy["expression"]
+        if not expression:
+            return None
+        return PatternSpec(name=name or self._next_pattern_name(), expression=expression, header=header)
+
+    def _update_autofill_menu(self):
+        """Rebuild the Autofill menu from the saved presets."""
+        menu = self.ui.menuAutofill
+        menu.clear()
+        presets = self.config_handler.get(AUTOFILL_KEY, {})
+        if isinstance(presets, dict):
+            for preset_name, value in presets.items():
+                expressions = value.get("regex_expression", []) if isinstance(value, dict) else []
+                action = QAction(str(preset_name), self)
+                action.triggered.connect(lambda _checked=False, e=expressions: self._set_autofill_regex_expressions(e))
+                menu.addAction(action)
+        menu.addSeparator()
+        menu.addAction(self.action_import_pattern_json)
+
     def _set_autofill_regex_expressions(self, expressions: list):
-        """Adds the values for regex expressions list widget.
+        added, invalid = 0, []
+        for entry in expressions or []:
+            spec = self._pattern_from_entry(entry)
+            if spec is None:
+                continue
+            if self._validate_regex(spec.expression) is not None:
+                invalid.append(spec.name)
+                continue
+            added += self._append_pattern(spec)
+        self.ui.statusbar.showMessage(f"Loaded {added} pre-built regex expression(s).", 6000)
+        if invalid:
+            QMessageBox.warning(self, "Invalid Patterns",
+                                "These saved patterns are not valid regular expressions and were skipped:\n"
+                                + "\n".join(invalid))
 
-        Args:
-            expressions (list[str]): List of regex expressions in the config
-        """
-        for index, entry in enumerate(expressions, start=1):
-            if isinstance(entry, dict):
-                pattern_spec = PatternSpec(
-                    name=str(entry.get("name", f"Pattern{index}")).strip() or f"Pattern{index}",
-                    expression=str(entry.get("expression", "")).strip(),
-                )
-            else:
-                expression = str(entry).strip()
-                if not expression:
-                    continue
-                pattern_spec = PatternSpec(
-                    name=f"Pattern{len(self.regex_patterns) + 1}",
-                    expression=expression,
-                )
+    # ======================================================================
+    # Theme / window
+    # ======================================================================
 
-            if pattern_spec.expression:
-                self._append_pattern(pattern_spec)
-        self.ui.statusbar.showMessage(
-            "Loaded pre-built regex expressions!", 6000)
+    def _initialize_theme(self, theme_file: Path):
+        try:
+            if Path(theme_file).is_file():
+                self.setStyleSheet(Path(theme_file).read_text(encoding="utf-8"))
+        except OSError as ex:
+            QMessageBox.critical(self, "Theme load error", f"Failed to load theme: {ex}")
 
-    def _save_app_settings(self):
-        """Saves app settings to QSettings"""
-        self.settings.setValue("Application_Theme", self.current_app_theme)
-        save_window_state(self, self.settings)
-
-    def closeEvent(self, event):
-        self._save_app_settings()
-        if self._active_worker and self._active_worker.isRunning():
+    def closeEvent(self, event: QCloseEvent):
+        worker = self._search_worker
+        if worker is not None and worker.isRunning():
             reply = QMessageBox.question(
-                self,
-                "Exit Confirmation",
-                "A task is still running. Are you sure you want to exit?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                self, "Exit Confirmation",
+                "A search is still running. Stop it and exit?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
             )
-            if reply == QMessageBox.No:
+            if reply != QMessageBox.StandardButton.Yes:
                 event.ignore()
                 return
-            else:
-                self._active_worker.stop()  # Assuming the worker has a stop method
+            worker.cancel()
+            worker.wait(10_000)
 
+        # Let a running export finish writing its file.
+        if self.thread_pool.activeThreadCount():
+            self.ui.statusbar.showMessage("Waiting for export to finish...")
+            self.thread_pool.waitForDone(30_000)
+
+        self.settings.setValue("Application_Theme", self.current_app_theme)
+        save_window_state(self, self.settings, self._state_prefix)
         super().closeEvent(event)
 
-    def _initialize_theme(self, theme_file: str):
-        """Initialized UI theme files (.qss)
-
-        Args:
-            theme_file (str): File path to the .qss theme file
-        """
-        try:
-            file = QFile(theme_file)
-            if not file.open(
-                QIODevice.OpenModeFlag.ReadOnly | QIODevice.OpenModeFlag.Text
-            ):
-                return
-            else:
-                stream = QTextStream(file)
-                stylesheet = stream.readAll()
-                self.setStyleSheet(stylesheet)
-            file.close()
-        except Exception as ex:
-            QMessageBox.critical(
-                self, "Theme load error", f"Failed to load theme: {ex!s}"
-            )
-
-    # === Menu bar slots === #
+    # ======================================================================
+    # Menu bar slots
+    # ======================================================================
 
     @Slot()
     def on_openInputDirectory(self):
-        directory: str = self.ui.line_edit_files_folder.text()
-        self.helper.open_dir_in_file_manager(directory)
+        self.helper.open_dir_in_file_manager(self.ui.line_edit_files_folder.text().strip())
 
     @Slot()
     def on_openOutputDirectory(self):
-        file_path: Path = Path(self.output_file_path)
-        directory: str = file_path.parent.__str__() if file_path.exists() else ""
-        self.helper.open_dir_in_file_manager(directory)
+        path = Path(self.output_file_path) if self.output_file_path else None
+        self.helper.open_dir_in_file_manager(str(path.parent) if path and path.exists() else "")
 
-    # === App Methods & Logic === #
-
-    # ===== Menubar events =====
-
-    @Slot()  # Opens Pre-built XPaths Manager QWidget
-    def on_openPrebuiltXPathsManager(self):
+    @Slot()
+    def on_openPrebuiltRegexManager(self):
         from gui.dialogs.regex_expression_manager import PreBuiltRegexManagerWidget
-        self.w = PreBuiltRegexManagerWidget(main_window=self)
-        self.w.show()
+
+        if self._regex_manager is None:
+            self._regex_manager = PreBuiltRegexManagerWidget(main_window=self)
+        self._regex_manager.show()
+        self._regex_manager.raise_()
+        self._regex_manager.activateWindow()
 
     @Slot()
-    def on_filesFolderTextChanged(self):
-        input_field = self.ui.line_edit_files_folder
-        self.helper.input_field_text_changed(line_edit=input_field)
-
-    # Button event handlers
-    @Slot()
-    def on_browseFolder(self):  # Handler for "Browse Folder" button
-        input_field = self.ui.line_edit_files_folder
-        self.helper.browse_folder_path(line_edit=input_field)
+    def on_browseFolder(self):
+        self.helper.browse_folder_path(line_edit=self.ui.line_edit_files_folder)
 
     @Slot()
     def on_importPatternProfileJson(self):
         json_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select Pattern Profile JSON",
-            str(Path.home()),
-            "JSON Files (*.json)"
-        )
+            self, "Select Pattern Profile JSON", str(Path.home()), "JSON Files (*.json)")
         if not json_path:
             return
-
         try:
             service = PatternProfileService(Path(json_path))
             profiles = service.list_profiles()
             selected_profile, accepted = QInputDialog.getItem(
-                self,
-                "Select Pattern Profile",
-                "Pattern profile:",
-                profiles,
-                0,
-                False,
-            )
+                self, "Select Pattern Profile", "Pattern profile:", profiles, 0, False)
             if not accepted or not selected_profile:
                 return
 
             pattern_specs = service.get_profile_patterns(selected_profile)
             if not pattern_specs:
-                QMessageBox.information(
-                    self,
-                    "Pattern Import",
-                    "No regex patterns were found in the selected profile.",
-                )
+                QMessageBox.information(self, "Pattern Import", "No regex patterns were found in the selected profile.")
                 return
 
-            loaded_count = 0
-            for pattern_spec in pattern_specs:
-                if self._append_pattern(pattern_spec):
-                    loaded_count += 1
+            invalid = [f"{p.name}: {err}" for p in pattern_specs if (err := self._validate_regex(p.expression))]
+            if invalid:
+                QMessageBox.warning(self, "Pattern Import",
+                                    "The profile contains invalid regular expressions:\n\n" + "\n".join(invalid))
+                return
+
+            loaded_count = sum(self._append_pattern(spec) for spec in pattern_specs)
 
             preset_name = f"Imported_{Path(json_path).stem}_{selected_profile}"
+            # Key path as list: preset names may contain dots (e.g. "logs.v2").
             self.config_handler.set(
-                f"custom_regex_autofill.{preset_name}.regex_expression",
-                [
-                    {"name": pattern.name, "expression": pattern.expression}
-                    for pattern in pattern_specs
-                ],
+                [AUTOFILL_KEY, preset_name, "regex_expression"],
+                [{"name": p.name, "expression": p.expression} for p in pattern_specs],
             )
             self._update_autofill_menu()
             self.ui.statusbar.showMessage(
-                f"Imported {loaded_count} regex patterns from profile '{selected_profile}'.",
-                10000,
-            )
+                f"Imported {loaded_count} regex patterns from profile '{selected_profile}'.", 10000)
         except Exception as ex:
-            QMessageBox.critical(
-                self,
-                "Pattern Import Error",
-                f"Failed to import pattern profile: {ex!s}",
-            )
+            QMessageBox.critical(self, "Pattern Import Error", f"Failed to import pattern profile: {ex}")
+
+    # ======================================================================
+    # Pattern list
+    # ======================================================================
 
     @Slot()
-    def on_convertString(self):  # Handler for "Convert String to Regex" button
-        try:
-            sample = self.ui.line_edit_string_to_regex.text()
-            regex = self.regex_builder.build_smart_regex(sample)
-            # regex = self.regex_builder.build_smart_regex(sample, group_name="ip", use_groups=True)
-            if regex:
-                # Add generated regex to the regex input field
-                regex_input = self.ui.line_edit_regex
-                if not regex_input.text().strip():
-                    regex_input.setText(regex)
-                    self.ui.statusbar.showMessage(
-                        f"Generated Regex: {regex}", 5000)
-                else:
-                    regex_input.setText(
-                        regex_input.text().strip() + " , " + regex)
-                    self.ui.statusbar.showMessage(
-                        "Added generated regex after existing regex, separated by a comma.", 5000)
-            else:
-                QMessageBox.information(
-                    self, "Input Warning", "Please enter a valid sample string.")
-        except Exception as ex:
-            QMessageBox.critical(self, "Convert String Error", f"An error occurred in string conversion: {ex!s}")
+    def on_convertString(self):
+        sample = self.ui.line_edit_string_to_regex.text()
+        regex = self.regex_builder.build_smart_regex(sample)
+        if not regex:
+            QMessageBox.information(self, "Input Warning", "Please enter a valid sample string.")
+            return
+        regex_input = self.ui.line_edit_regex
+        if regex_input.text().strip():
+            # Append (concatenate) so a pattern can be built piece by piece.
+            regex_input.setText(regex_input.text() + regex)
+            self.ui.statusbar.showMessage("Appended generated regex to the existing pattern.", 5000)
+        else:
+            regex_input.setText(regex)
+            self.ui.statusbar.showMessage(f"Generated Regex: {regex}", 5000)
 
     @Slot()
-    def add_regexToListWidget(self):  # Handler for "Add Regex to List" button
-        try:
-            regex_input = self.ui.line_edit_regex.text().strip()
-            if regex_input:
-                pattern_spec = PatternSpec(
-                    name=f"Pattern{len(self.regex_patterns) + 1}",
-                    expression=regex_input,
-                )
-                if not self._append_pattern(pattern_spec):
-                    QMessageBox.information(
-                        self,
-                        "Duplicate Regex",
-                        "This regex pattern already exists in the active list.",
-                    )
-                    return
-                self.ui.line_edit_regex.clear()
-                self.ui.statusbar.showMessage(
-                    f"Added {regex_input} regex pattern to the list.", 5000)
-            else:
-                QMessageBox.information(
-                    self, "Missing regex pattern", "Please enter a regex pattern in the input field.")
-        except Exception as ex:
-            QMessageBox.critical(
-                self, "Add to List Error", f"An error occurred while trying to add regex pattern to list: {ex!s}")
+    def add_regexToListWidget(self):
+        expression = self.ui.line_edit_regex.text().strip()
+        if not expression:
+            QMessageBox.information(self, "Missing regex pattern", "Please enter a regex pattern in the input field.")
+            return
+        if (error := self._validate_regex(expression)) is not None:
+            QMessageBox.warning(self, "Invalid Regex", f"The pattern is not a valid regular expression:\n\n{error}")
+            return
+        if any(p.expression == expression for p in self.regex_patterns):
+            QMessageBox.information(self, "Duplicate Regex", "This regex pattern already exists in the active list.")
+            return
+        self._append_pattern(PatternSpec(name=self._next_pattern_name(), expression=expression))
+        self.ui.line_edit_regex.clear()
+        self.ui.statusbar.showMessage(f"Added {expression} regex pattern to the list.", 5000)
 
     @Slot()
-    # Handler for "Remove Selected" button
     def on_removeSelectedRegexPattern(self):
-        """Remove selected pattern from the list."""
-        current_row = self.ui.list_widget_regex.currentRow()
-        if current_row >= 0:
-            self.ui.statusbar.showMessage(
-                f"Removed {self.ui.list_widget_regex.currentItem().text()} from list!", 5000)
-            self.ui.list_widget_regex.takeItem(current_row)
-            del self.regex_patterns[current_row]
+        row = self.ui.list_widget_regex.currentRow()
+        if 0 <= row < len(self.regex_patterns):
+            item = self.ui.list_widget_regex.takeItem(row)
+            del self.regex_patterns[row]
+            self.ui.statusbar.showMessage(f"Removed {item.text()} from list!", 5000)
 
     @Slot()
-    def on_removeAllRegexPattern(self):  # Handler for "Remove All" button
-        """Clear all patterns from the list."""
-        current_items = self.ui.list_widget_regex.count()
-        if current_items > 0:
+    def on_removeAllRegexPattern(self):
+        if self.ui.list_widget_regex.count():
             self.ui.list_widget_regex.clear()
             self.regex_patterns.clear()
-            self.ui.statusbar.showMessage(
-                "Removed all regex patterns from list!", 5000)
+            self._pattern_counter = 0
+            self.ui.statusbar.showMessage("Removed all regex patterns from list!", 5000)
+
+    # ======================================================================
+    # Search
+    # ======================================================================
+
+    def _set_search_running(self, running: bool):
+        btn = self.ui.button_start_search
+        btn.setEnabled(True)
+        btn.setText("Stop Search" if running else "Start Search")
+        if self.ui_layout == LAYOUT_MODERN:
+            self.ui.progress_bar.setVisible(running)  # status bar: only while searching
+        for widget in (self.ui.button_search_result_clear_results, self.ui.button_count_occurrences,
+                       self.ui.button_regex_pattern_remove_all, self.ui.button_regex_pattern_remove_selected):
+            widget.setEnabled(not running)
+        self.ui.statusbar.showMessage("Searching..." if running else "Ready to search.", 0 if running else 5000)
 
     @Slot()
-    def on_startSearch(self):  # Handler for "Start Search" button
-        """Main business logic of app, searches the found files with the set regex patterns"""
-        try:
-            # Clear previous output
-            self.ui.program_output.clear()
-            
-            # Segmentation mode selection
-            segmentation_mode = self.ui.combobox_segmentation_mode.currentText()
-
-            # Validate inputs
-            folder_path = Path(self.ui.line_edit_files_folder.text().strip())
-            file_patterns = [
-                p.strip() for p in self.ui.line_edit_file_pattern.text().split(",") if p.strip()]
-            regex_patterns = self.regex_patterns
-            multiline_search = self.ui.checkbox_multiline_search.isChecked()
-
-            if not folder_path.exists() or not folder_path.is_dir():
-                QMessageBox.information(
-                    self, "Input Warning", "Please specify a valid folder path.")
-                return
-            if not regex_patterns:
-                QMessageBox.information(
-                    self, "Input Warning", "Please add at least one regex pattern.")
-                return
-
-            # Disable the button to prevent multiple searches at once
+    def on_startSearch(self):
+        # Button doubles as "Stop Search" while a search runs.
+        if self._search_worker is not None:
+            self._search_worker.cancel()
             self.ui.button_start_search.setEnabled(False)
+            self.ui.button_start_search.setText("Stopping...")
+            return
 
-            if self.ui.checkbox_enable_parallel_processing.isChecked():
+        folder_text = self.ui.line_edit_files_folder.text().strip()
+        folder_path = Path(folder_text) if folder_text else None
+        if folder_path is None or not folder_path.is_dir():
+            QMessageBox.information(self, "Input Warning", "Please specify a valid folder path.")
+            return
+        if not self.regex_patterns:
+            QMessageBox.information(self, "Input Warning", "Please add at least one regex pattern.")
+            return
 
-                # Parallel processing version (multi-threaded):
-                from core.search.parallel_regex_processor import ParallelRegexProcessor
+        patterns = tuple(PatternDef(p.name, p.expression, p.header) for p in self.regex_patterns)
+        try:
+            compile_patterns(patterns)  # fail fast in the GUI with a clear message
+        except PatternError as exc:
+            QMessageBox.warning(self, "Regex Error", str(exc))
+            return
 
-                # Create and start the search thread
-                parallel_processor = ParallelRegexProcessor(
-                    thread_pool=self.thread_pool,
-                    regex_patterns=regex_patterns,
-                    folder_path=folder_path,
-                    file_patterns=file_patterns,
-                    multiline=multiline_search,
-                    max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value(
-                    ) > 0 and self.ui.checkbox_limit_rows.isChecked() else 0
-                )
+        limit_rows = self.ui.checkbox_limit_rows.isChecked() and self.ui.spinbox_rows.value() > 0
+        options = SearchOptions(
+            folder=folder_path,
+            patterns=patterns,
+            file_patterns=tuple(p.strip() for p in self.ui.line_edit_file_pattern.text().split(",") if p.strip()),
+            segmentation_mode=self.ui.combobox_segmentation_mode.currentText(),
+            whole_file=self.ui.checkbox_multiline_search.isChecked(),
+            max_rows=self.ui.spinbox_rows.value() if limit_rows else 0,
+        )
+        workers = self.parallel_worker_count() if self.ui.checkbox_enable_parallel_processing.isChecked() else 1
 
-                self._active_worker = parallel_processor
+        self._clear_results_view()
+        self.ui.program_output.clear()
+        self.ui.program_output.append(
+            f"Starting search ({'parallel, ' + str(workers) + ' processes' if workers > 1 else 'sequential'}, "
+            f"{'whole-file' if options.whole_file else options.segmentation_mode + ' segmentation'})...")
 
-                self.ui.program_output.append(
-                    "Starting parallel worker threads...")
-                self.connect_regex_processor_signals(
-                    parallel_processor)  # Connected signals and slots
+        worker = SearchWorker(options, workers=workers, parent=self)
+        worker.schema_ready.connect(self._on_search_schema)
+        worker.rows_ready.connect(self.results_model.append_rows)
+        worker.progress_changed.connect(self.handle_progress_bar)
+        worker.log_message.connect(self.handle_program_output)
+        worker.search_failed.connect(self.handle_critical_message)
+        worker.search_completed.connect(self._on_search_completed)
+        worker.finished.connect(self._on_search_thread_finished)  # QThread.finished: run() has returned
+        self._search_worker = worker
+        self._set_search_running(True)
+        worker.start()
 
-                parallel_processor.run()
+    @Slot(list)
+    def _on_search_schema(self, columns: list):
+        self.proxy_model.setSourceModel(self.results_model)
+        self.results_model.reset(columns)
 
-            else:
-                # Non-parallel processing version (single-threaded):
-                from core.search.regex_processor import RegexProcessorSignals, run_regex_search
+    @Slot(dict)
+    def _on_search_completed(self, summary: dict):
+        rows = self.results_model.rowCount()
+        if summary:
+            state = "cancelled" if summary.get("cancelled") else "finished"
+            self.ui.program_output.append(
+                f"Search {state}: {summary.get('searched_files', 0)}/{summary.get('total_files', 0)} files, "
+                f"{rows} matches, {summary.get('failed_files', 0)} unreadable, "
+                f"{summary.get('elapsed', 0):.2f}s.")
 
-                # Create and start the search thread non parallel version
-                regex_processor_thread = Worker(
-                    run_regex_search,
-                    segmentation_mode=segmentation_mode,
-                    regex_patterns=regex_patterns,
-                    folder_path=folder_path,
-                    file_patterns=file_patterns,
-                    multiline=multiline_search,
-                    max_rows=self.ui.spinbox_rows.value() if self.ui.spinbox_rows.value(
-                    ) > 0 and self.ui.checkbox_limit_rows.isChecked() else 0,
-                    signals_factory=RegexProcessorSignals,
-                )
-
-                self._active_worker = regex_processor_thread
-
-                self.connect_regex_processor_signals(
-                    regex_processor_thread)  # Connected signals and slots
-
-                self.thread_pool.start(regex_processor_thread)
-
-        except Exception as ex:
-            QMessageBox.critical(self, "Search Error",
-                                 f"An error occurred in search: {ex!s}")
+        if rows:
+            self.ui.table_widget_results.resizeColumnsToContents()
+            self.ui.combobox_count_occurrences.clear()
+            self.ui.combobox_count_occurrences.addItems(self.results_model.columns())
+            self._set_visible_of_widgets(True)
+        elif summary and not summary.get("cancelled"):
+            self.ui.program_output.append(
+                "No matches found. Tip: patterns spanning several lines need "
+                "'Multiline search' or a matching segmentation mode.")
+            QMessageBox.information(self, "Search Complete", "No matches found.")
 
     @Slot()
-    def on_clearResults(self):  # Handler for clear table widget
-        self.ui.table_widget_results.setModel(None)
-        self.ui.statusbar.showMessage("Cleared results table!", 5000)
-        self.current_results.clear()  # Clear the current results list
-        # Hide specified widgets on initial load
+    def _on_search_thread_finished(self):
+        worker = self._search_worker
+        self._search_worker = None
+        if worker is not None:
+            worker.deleteLater()
+        self.handle_progress_bar(0)
+        self._set_search_running(False)
+        self._set_visible_of_widgets(self.results_model.rowCount() > 0)
+
+    # ======================================================================
+    # Results table
+    # ======================================================================
+
+    def _clear_results_view(self):
+        self.ui.line_edit_filter_table_text.blockSignals(True)
+        self.ui.line_edit_filter_table_text.clear()
+        self.ui.line_edit_filter_table_text.blockSignals(False)
+        self.proxy_model.setFilterFixedString("")
+        self.ui.table_widget_results.horizontalHeader().setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+        self.proxy_model.sort(-1)
+        self.proxy_model.setSourceModel(self.results_model)
+        self.results_model.reset()
+        self.summary_model.reset()
+        self.ui.combobox_count_occurrences.clear()
         self._set_visible_of_widgets(False)
 
     @Slot()
-    def on_exportToExcel(self):
-        """Export table_widget_results to Excel file."""
-        table = self.ui.table_widget_results
-        model = table.model()
-        if model is None:
-            return
-
-        row_count = model.rowCount()
-        col_count = model.columnCount()
-
-        if row_count == 0 or col_count == 0:
-            QMessageBox.information(
-                self, "Export Information", "No results to export.")
-            return
-
-        # Use last export directory, fall back to home if it doesn't exist
-        default_dir = self.last_export_directory if Path(
-            self.last_export_directory).exists() else str(Path.home())
-        default_file = str(Path(default_dir) / "Regex_Search_Result.xlsx")
-
-        self.output_file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Export Result",
-            default_file,
-            "Excel Files (*.xlsx)"
-        )
-        if self.output_file_path:
-            # Save the directory for next time
-            self.last_export_directory = str(
-                Path(self.output_file_path).parent)
-            self.settings.setValue(
-                "last_export_directory", self.last_export_directory)
-
-            from services.export.excel_exporter import ExcelExporterSignals, export_table_to_excel
-
-            excel_exporter_thread = Worker(
-                export_table_to_excel,
-                table,
-                row_count,
-                col_count,
-                self.output_file_path,
-                self.app_icon,
-                signals_factory=ExcelExporterSignals,
-            )
-            self.connect_excel_exporter_signals(excel_exporter_thread)
-            self.thread_pool.start(excel_exporter_thread)
-        else:
-            self.ui.statusbar.showMessage("Action cancelled by user!", 5000)
+    def _apply_table_filter(self):
+        self.proxy_model.setFilterFixedString(self.ui.line_edit_filter_table_text.text().strip())
 
     @Slot()
-    def on_clearProgramOutput(self):
-        """Clear Program Output Textbox"""
-        if len(self.ui.program_output.toPlainText()) > 0:
-            self.ui.program_output.clear()
-            self.ui.statusbar.showMessage("Output cleared!", 5000)
-
-    @Slot()
-    def on_checkBoxCheckedLimitRows(self):
-        """Enable/Disable the max rows input field based on the checkbox state."""
-        if self.ui.checkbox_limit_rows.isChecked():
-            self.ui.spinbox_rows.setEnabled(True)
-        else:
-            self.ui.spinbox_rows.setEnabled(False)
-            self.ui.spinbox_rows.setValue(0)  # Reset to default value
-
-    @Slot()
-    def on_parallelProcessingInfo(self):
-        """Show information about parallel processing."""
-        info_text = (
-            "Parallel Processing Info:\n\n"
-            "When enabled, the application will utilize multiple threads to process files concurrently. "
-            "This can significantly speed up the search process, especially when dealing with large datasets or multiple files.\n\n"
-            "However, please note that enabling parallel processing may increase CPU and memory usage. "
-            "Ensure that your system has sufficient resources to handle the additional load.\n\n"
-            "If you encounter any issues or performance degradation, consider disabling this option."
-        )
-        QMessageBox.information(
-            self, "Parallel Processing Information", info_text)
+    def on_clearResults(self):
+        self._clear_results_view()
+        self.ui.statusbar.showMessage("Cleared results table!", 5000)
 
     @Slot()
     def on_countOccurrences(self):
         from core.analysis.count_occurrences import count_occurrences_by_key
 
-        if not self.current_results:
-            QMessageBox.warning(
-                self, "No Data", "No search results available to count.")
+        if not self.results_model.rowCount():
+            QMessageBox.warning(self, "No Data", "No search results available to count.")
             return
-
         key_field = self.ui.combobox_count_occurrences.currentText()
-
         if not key_field:
-            QMessageBox.information(
-                self, "Input Warning", "Please select a key field to count occurrences.")
+            QMessageBox.information(self, "Input Warning", "Please select a key field to count occurrences.")
             return
 
-        summary = count_occurrences_by_key(self.current_results, key_field)
-
+        columns, summary = count_occurrences_by_key(self.results_model.rows(), key_field)
         if not summary:
-            QMessageBox.information(
-                self, "No Data", "No occurrences found for the specified key.")
+            QMessageBox.information(self, "No Data", f"No values found in column '{key_field}'.")
+            return
+        self.summary_model.reset(columns, summary)
+        self.proxy_model.setSourceModel(self.summary_model)
+        self.ui.table_widget_results.resizeColumnsToContents()
+        self.ui.statusbar.showMessage(
+            f"Showing occurrence counts for '{key_field}'. Start a new search or clear to return.", 8000)
+
+    def _visible_snapshot(self) -> tuple[list[str], list[dict]]:
+        """Rows exactly as shown (filtered + sorted), taken on the GUI thread."""
+        source: ResultsTableModel = self.proxy_model.sourceModel()
+        columns = source.columns()
+        proxy = self.proxy_model
+        if proxy.rowCount() == source.rowCount() and proxy.sortColumn() < 0:
+            return columns, source.rows()
+        return columns, [source.row_at(proxy.mapToSource(proxy.index(r, 0)).row()) for r in range(proxy.rowCount())]
+
+    @Slot()
+    def on_exportResults(self):
+        if self._export_worker is not None:
+            QMessageBox.information(self, "Export", "An export is already running.")
+            return
+        columns, rows = self._visible_snapshot()
+        if not rows:
+            QMessageBox.information(self, "Export Information", "No results to export.")
             return
 
-        # Display the new summary of the count occurrences in the results table
-        import pandas as pd
-        summary_df = pd.DataFrame(summary, dtype=str)
-        self._populate_results_table(summary_df)
+        default_dir = self.last_export_directory if Path(self.last_export_directory).is_dir() else str(Path.home())
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            self, "Export Result", str(Path(default_dir) / "Regex_Search_Result.xlsx"),
+            ";;".join((EXPORT_FILTER_XLSX, EXPORT_FILTER_CSV, EXPORT_FILTER_CSV_SEMI)),
+        )
+        if not file_path:
+            self.ui.statusbar.showMessage("Export cancelled by user.", 5000)
+            return
+
+        if selected_filter == EXPORT_FILTER_CSV_SEMI:
+            delimiter = ";"
+        elif selected_filter == EXPORT_FILTER_CSV or file_path.lower().endswith(".csv"):
+            delimiter = ","
+        else:
+            delimiter = None
+
+        self.output_file_path = file_path
+        self.last_export_directory = str(Path(file_path).parent)
+        self.settings.setValue("last_export_directory", self.last_export_directory)
+
+        from services.export.exporter import ExportSignals, export_results
+
+        worker = Worker(export_results, file_path, columns, rows, delimiter, signals_factory=ExportSignals)
+        worker.signals.status.connect(self.handle_statusbar_message)
+        worker.signals.failed.connect(self.handle_critical_message)
+        worker.signals.succeeded.connect(self._on_export_succeeded)
+        worker.signals.failed.connect(self._on_export_done)
+        self._export_worker = worker
+        self.ui.button_search_result_export_to_csv.setEnabled(False)
+        self.thread_pool.start(worker)
+
+    @Slot(str)
+    def _on_export_succeeded(self, path: str):
+        self.output_file_path = path
+        self._on_export_done()
+        self.handle_export_success(path)
+
+    @Slot()
+    def _on_export_done(self, *_):
+        self._export_worker = None
+        self.ui.button_search_result_export_to_csv.setEnabled(True)
+
+    # ======================================================================
+    # Misc
+    # ======================================================================
+
+    @Slot()
+    def on_clearProgramOutput(self):
+        if self.ui.program_output.toPlainText():
+            self.ui.program_output.clear()
+            self.ui.statusbar.showMessage("Output cleared!", 5000)
+
+    @Slot()
+    def on_checkBoxCheckedLimitRows(self, *_):
+        enabled = self.ui.checkbox_limit_rows.isChecked()
+        self.ui.spinbox_rows.setEnabled(enabled)
+        if not enabled:
+            self.ui.spinbox_rows.setValue(0)
+
+    @Slot()
+    def on_parallelProcessingInfo(self):
+        QMessageBox.information(
+            self, "Parallel Processing Information",
+            "Searches always run in a separate worker process, so the window stays responsive "
+            "and 'Stop Search' works even if a pattern gets stuck (catastrophic backtracking).\n\n"
+            f"With parallel processing enabled, files are searched by {self.parallel_worker_count()} "
+            "processes at once (half of your CPU cores). This speeds up searches over many files "
+            "but uses more CPU and memory. Results are still returned in file order.",
+        )

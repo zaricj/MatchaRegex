@@ -1,8 +1,7 @@
 from PySide6.QtWidgets import QWidget, QMessageBox, QListWidget, QLineEdit, QListWidgetItem, QApplication
-from PySide6.QtCore import Slot, QFile, QIODevice, QTextStream
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QCloseEvent
 from pathlib import Path
-from services.config.config_handler import ConfigHandler
 from gui.ui.dialogs.PreBuiltRegexManagerWidget_ui import Ui_PreBuiltRegexManagerWidget
 
 from typing import TYPE_CHECKING
@@ -10,25 +9,9 @@ if TYPE_CHECKING:
     from app import MainWindow
 
 
-# Determine the path of the current file and resolve it to handle symlinks/etc.
-FILE_PATH = Path(__file__).resolve()
-
-# Get the project src directory
-SRC_ROOT_DIR = FILE_PATH.parents[2]
-
-# Path Constants
-GUI_CONFIG_DIRECTORY: Path = SRC_ROOT_DIR / "config"
-GUI_CONFIG_FILE_PATH: Path = SRC_ROOT_DIR / "config" / "config.json"
-
-# Theme files
-DARK_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "dark.qss"
-LIGHT_THEME_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "styles" / "light.qss"
-
-ICON_PATH: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "matcha-latte.png"
-
-# Theme file icons
-DARK_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "dropdown_arrow_dark_14x14.png"
-LIGHT_THEME_QMENU_ICON: Path = SRC_ROOT_DIR / "gui" / "assets" / "images" / "dropdown_arrow_light_14x14.png"
+AUTOFILL_KEY = "custom_regex_autofill"
+# Original config entry ({"name", "expression"} dict or string) stored on list items.
+ENTRY_ROLE = Qt.ItemDataRole.UserRole
 
 
 class PreBuiltRegexManagerWidget(QWidget):
@@ -42,14 +25,9 @@ class PreBuiltRegexManagerWidget(QWidget):
         
         self.active_list_widget = None # Active widget tracking variable
 
-        # Initialize ConfigHandler, passing self (CustomPathsManager) as the parent for QMessageBox
-        # and also the main_window as the optional parent for the QMessageBox within ConfigHandler
-        self.config_handler = ConfigHandler(
-            config_directory=GUI_CONFIG_DIRECTORY,
-            config_file_name=GUI_CONFIG_FILE_PATH,
-            main_window=self # Pass self as the parent for QMessageBox in ConfigHandler
-        )
-        
+        # Share the main window's handler: two handlers would overwrite each other's changes.
+        self.config_handler = main_window.config_handler
+
         # Connect signals/slots
         self.ui.button_add_xpath_to_list.clicked.connect(self.onAddXpathToList)
         self.ui.button_save_config.clicked.connect(self.onSaveConfig)
@@ -71,7 +49,7 @@ class PreBuiltRegexManagerWidget(QWidget):
         # Initialize current app theme
         self._initialize_theme()
         # Update combobox with configuration values
-        self.update_combobox("custom_regex_autofill")
+        self.update_combobox(AUTOFILL_KEY)
         
     # You might need to set the initial focus to the first list widget if one starts populated by default.
     def _set_active_list(self, list_widget: QListWidget):
@@ -79,23 +57,8 @@ class PreBuiltRegexManagerWidget(QWidget):
         self.active_list_widget = list_widget
         
     def _initialize_theme(self):
-        """Initialize UI theme files (.qss)"""
-        try:
-            if self.main_window.current_app_theme == "dark.qss":
-                theme_file = self.main_window.dark_theme_file
-            else:
-                theme_file = self.main_window.light_theme_file
-
-            file = QFile(theme_file)
-            if not file.open(QIODevice.ReadOnly | QIODevice.Text):
-                return
-            stylesheet = QTextStream(file).readAll()
-            self.setStyleSheet(stylesheet)
-            file.close()
-        except Exception as ex:
-            QMessageBox.critical(
-                self, "Theme load error", f"Failed to load theme: {str(ex)}"
-            )
+        """Use the same stylesheet as the main window."""
+        self.setStyleSheet(self.main_window.styleSheet())
 
     # ===== Slots for App logic =====
     
@@ -109,7 +72,7 @@ class PreBuiltRegexManagerWidget(QWidget):
         self._add_items_to_list_widget(xpath_expression, list_widget_xpath_expressions)
         self.ui.line_edit_xpath_expression.clear()
         
-    @Slot(str) # On button click event save config
+    @Slot() # On button click event save config
     def onSaveConfig(self):
         """Saves the config with the added XPaths expressions.
 
@@ -121,13 +84,14 @@ class PreBuiltRegexManagerWidget(QWidget):
         valid_widgets = self._validate_inputs(list_widgets_to_validate)
 
         if valid_widgets:
-            xpath_expressions = self._listwidget_to_list(self.ui.list_widget_xpath_expressions)
-            config_name = self.ui.line_edit_config_name.text()
+            xpath_expressions = self._listwidget_to_entries(self.ui.list_widget_xpath_expressions)
+            config_name = self.ui.line_edit_config_name.text().strip()
 
-            self.config_handler.set(f"custom_regex_autofill.{config_name}.regex_expression", xpath_expressions)
+            self.config_handler.set([AUTOFILL_KEY, config_name, "regex_expression"], xpath_expressions)
 
-            # Update combobox
-            self.update_combobox("custom_regex_autofill")
+            # Update combobox + autofill menu
+            self.update_combobox(AUTOFILL_KEY)
+            self.main_window._update_autofill_menu()
             QMessageBox.information(
                 self,
                 "Configuration saved",
@@ -145,13 +109,16 @@ class PreBuiltRegexManagerWidget(QWidget):
         valid_widgets = self._validate_inputs(list_widgets_to_validate)
 
         if valid_widgets:
-            xpath_expressions = self._listwidget_to_list(self.ui.list_widget_edit_xpath_expressions)
+            xpath_expressions = self._listwidget_to_entries(self.ui.list_widget_edit_xpath_expressions)
             config_name = self.ui.combobox_xpath_configs.currentText()
+            if not config_name:
+                QMessageBox.information(self, "No configuration", "Please load a configuration first.")
+                return
             
-            self.config_handler.set(f"custom_regex_autofill.{config_name}.regex_expression", xpath_expressions)
+            self.config_handler.set([AUTOFILL_KEY, config_name, "regex_expression"], xpath_expressions)
             
             # Update combobox
-            self.update_combobox("custom_regex_autofill")
+            self.update_combobox(AUTOFILL_KEY)
             QMessageBox.information(
                 self,
                 "Configuration changes saved",
@@ -175,14 +142,15 @@ class PreBuiltRegexManagerWidget(QWidget):
 
             # *** Dynamic usage: Direct get for a nested path ***
             # Both variables should return a list of strings
-            xpath_expressions = self.config_handler.get(f"custom_regex_autofill.{config_name}.regex_expression", [])
+            xpath_expressions = self.config_handler.get([AUTOFILL_KEY, config_name, "regex_expression"], None)
 
             if xpath_expressions is not None:
                 # Clear list widgets in order to omit duplicate entries, because each load adds items xD
                 self.clear_list_widgets([self.ui.list_widget_edit_xpath_expressions])
-                self.ui.list_widget_edit_xpath_expressions.addItems(
-                    [self._expression_to_text(item) for item in xpath_expressions]
-                )
+                for entry in xpath_expressions:
+                    item = QListWidgetItem(self._expression_to_text(entry))
+                    item.setData(ENTRY_ROLE, entry)
+                    self.ui.list_widget_edit_xpath_expressions.addItem(item)
             else:
                 QMessageBox.warning(self, "Configuration not found", f"The configuration name '{config_name}' was not found in the configuration.")
 
@@ -205,7 +173,7 @@ class PreBuiltRegexManagerWidget(QWidget):
             if reply == QMessageBox.Yes:
                 try:
                     # *** Dynamic usage: Direct delete for a nested path ***
-                    self.config_handler.delete(f"custom_regex_autofill.{config_name}")
+                    self.config_handler.delete([AUTOFILL_KEY, config_name])
                     self.ui.combobox_xpath_configs.removeItem(config_name_index)
                     # Clear all list widgets after successful delete
                     self.clear_list_widgets([self.ui.list_widget_edit_xpath_expressions])
@@ -332,6 +300,15 @@ class PreBuiltRegexManagerWidget(QWidget):
         """
         return [widget.item(i).text() for i in range(widget.count())]
 
+    def _listwidget_to_entries(self, widget: QListWidget) -> list:
+        """Return the original config entries (dicts keep their name), not display text."""
+        entries = []
+        for i in range(widget.count()):
+            item = widget.item(i)
+            original = item.data(ENTRY_ROLE)
+            entries.append(original if original is not None else item.text())
+        return entries
+
     def _expression_to_text(self, item) -> str:
         if isinstance(item, dict):
             name = str(item.get("name", "")).strip()
@@ -360,10 +337,17 @@ class PreBuiltRegexManagerWidget(QWidget):
             item (str): The string that will be added to the list widget.
             list_widget (QListWidget): The list widget that strings will be added to.
         """
+        item = item.strip()
         if item == "":
             QMessageBox.information(self, "Empty String", "Please enter a string that you want to add to the list.")
             return
-        if item and not self._is_duplicate(item, self._listwidget_to_list(list_widget)):
+        import re
+        try:
+            re.compile(item)
+        except re.error as exc:
+            QMessageBox.warning(self, "Invalid Regex", f"'{item}' is not a valid regular expression:\n{exc}")
+            return
+        if not self._is_duplicate(item, self._listwidget_to_list(list_widget)):
             list_widget.addItem(QListWidgetItem(item))
         else:
             QMessageBox.warning(self, "Duplicate string in list", f"Cannot add duplicate string '{item}' into list:")
@@ -372,3 +356,4 @@ class PreBuiltRegexManagerWidget(QWidget):
     def closeEvent(self, event: QCloseEvent):
         # Always update autofill menu
         self.main_window._update_autofill_menu()
+        super().closeEvent(event)

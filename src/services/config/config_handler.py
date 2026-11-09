@@ -1,149 +1,138 @@
-from PySide6.QtWidgets import QMessageBox, QMainWindow
-from pathlib import Path
+from __future__ import annotations
+
 import json
+import os
+import shutil
+import tempfile
+import time
+from pathlib import Path
+from typing import Any, Sequence
+
+from PySide6.QtWidgets import QMessageBox, QWidget
+
+KeyPath = str | Sequence[str]
+
 
 class ConfigHandler:
-    def __init__(self, config_directory: Path, config_file_name: Path, main_window: QMainWindow = None):
-        """Initializes the ConfigHandler with a specific JSON configuration file."""
-        self.config_directory: Path = config_directory
-        self.config_file_name: Path = config_file_name
-        self.main_window = main_window
+    """
+    JSON configuration store.
 
-        Path.mkdir(self.config_directory, exist_ok=True)
-        self.data = self._load_config()
+    * One instance should be shared by the whole application (the main window
+      owns it) so different windows never overwrite each other's changes.
+    * Values are cached in memory; every change is written atomically
+      (temp file + ``os.replace``) so a crash can never leave a half written file.
+    * A corrupt file is backed up instead of silently wiped.
+    * Key paths are either dot strings (``"a.b.c"``) or sequences
+      (``["a", "name.with.dots", "c"]``) — use sequences for user supplied names.
+    """
+
+    def __init__(self, config_directory: Path, config_file_name: Path, main_window: QWidget | None = None):
+        self.config_directory = Path(config_directory)
+        self.config_file_name = Path(config_file_name)
+        self.main_window = main_window
+        self.config_directory.mkdir(parents=True, exist_ok=True)
+        self.data: dict = self._load_config()
+
+    # ----- persistence -----
 
     def _load_config(self) -> dict:
-        """Loads configuration from the JSON file. If the file is missing or
-        invalid, it resets the configuration and returns an empty dictionary.
-        """
-        if self.config_file_name.exists():
+        if not self.config_file_name.exists():
+            return {}
+        try:
+            with open(self.config_file_name, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            if isinstance(data, dict):
+                return data
+            raise ValueError("top level JSON value is not an object")
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError) as exc:
+            backup = self.config_file_name.with_name(
+                f"{self.config_file_name.stem}.corrupt-{time.strftime('%Y%m%d-%H%M%S')}.json"
+            )
             try:
-                with open(self.config_file_name, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                parent_widget = self.main_window if self.main_window else None
-                QMessageBox.warning(parent_widget, "Load config warning",
-                                    f"Warning: {self.config_file_name} contains invalid JSON. Resetting configuration file.")
-        self.reset_config()
-        return {}
+                shutil.copy2(self.config_file_name, backup)
+                where = f"A backup was saved as:\n{backup}"
+            except OSError:
+                where = "A backup could not be created."
+            QMessageBox.warning(
+                self.main_window,
+                "Load config warning",
+                f"{self.config_file_name} contains invalid JSON ({exc}).\n"
+                f"Starting with an empty configuration. {where}",
+            )
+            return {}
+        except OSError as exc:
+            QMessageBox.warning(self.main_window, "Load config warning", f"Could not read configuration: {exc}")
+            return {}
 
-    def save_config(self):
-        """Saves the current configuration to the JSON file."""
-        with open(self.config_file_name, "w", encoding="utf-8") as f:
-            json.dump(self.data, f, indent=4)
+    def save_config(self) -> None:
+        self.config_directory.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=self.config_directory, prefix=".config-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump(self.data, handle, indent=4, ensure_ascii=False)
+            os.replace(tmp, self.config_file_name)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
 
-    def _get_nested_key(self, keys: list[str]):
-        """Helper to navigate to the correct nested dictionary."""
-        current_data = self._load_config()
-        for i, key in enumerate(keys):
-            if key not in current_data:
-                return None, None # Key not found, or not a dict
-            if i < len(keys) - 1: # Not the last key, expect a dictionary
-                if not isinstance(current_data[key], dict):
-                    # Path broken: trying to access sub-key of a non-dict
-                    return None, None
-                current_data = current_data[key]
-        return current_data, keys[-1] # Return parent dict and the actual key
+    # ----- key helpers -----
 
-    def set(self, key_path: str, value: any):
-        """
-        Sets a configuration value, handling nested keys using dot notation. (e.g., 'section.subsection.key').
+    @staticmethod
+    def _keys(key_path: KeyPath) -> list[str]:
+        if isinstance(key_path, str):
+            return [k for k in key_path.split(".") if k]
+        return [str(k) for k in key_path]
 
-        The method updates the in-memory 'self.data' and automatically
-        saves the entire configuration to the disk afterward. Non-existent
-        intermediate keys will be created as new dictionaries.
+    # ----- public API -----
 
-        Args:
-            key_path (str): The configuration key path (e.g., 'key' or 'section.subkey').
-            value (any): The value to assign to the key.
-
-        Example:
-            If the current config is {}.
-            >>> config_handler.set('app_version', '1.0.0')
-            # Resulting config: {"app_version": "1.0.0"}
-
-            If the current config is {"app_version": "1.0.0"}.
-            >>> config_handler.set('custom_paths.docs', '/home/user/documents')
-            # Resulting config: {
-            #     "app_version": "1.0.0",
-            #     "custom_paths": {
-            #         "docs": "/home/user/documents"
-            #     }
-            # }
-        """
-        keys = key_path.split('.')
-        parent_data = self.data
-        for i, key in enumerate(keys):
-            if i == len(keys) - 1: # Last key in the path
-                parent_data[key] = value
-            else: # Not the last key, ensure it's a dictionary
-                if key not in parent_data or not isinstance(parent_data[key], dict):
-                    parent_data[key] = {} # Create dict if it doesn't exist or is not a dict
-                parent_data = parent_data[key]
-        self.save_config()
-
-    def get(self, key_path: str, default: any = None):
-        """Gets a configuration value, handling nested keys (e.g., 'section.subsection.key')."""
-        keys = key_path.split('.')
-        current_data = self._load_config()
-        for key in keys:
-            if isinstance(current_data, dict) and key in current_data:
-                current_data = current_data[key]
+    def get(self, key_path: KeyPath, default: Any = None) -> Any:
+        current: Any = self.data
+        for key in self._keys(key_path):
+            if isinstance(current, dict) and key in current:
+                current = current[key]
             else:
                 return default
-        return current_data
+        return current
 
-    def delete(self, key_path: str):
-        """Deletes a key from the configuration, handling nested keys (e.g., 'section.subsection.key')."""
-        keys = key_path.split('.')
-        if not keys: return # Nothing to delete
+    def set(self, key_path: KeyPath, value: Any) -> None:
+        keys = self._keys(key_path)
+        if not keys:
+            raise ValueError("Empty configuration key path")
+        parent = self.data
+        for key in keys[:-1]:
+            if not isinstance(parent.get(key), dict):
+                parent[key] = {}
+            parent = parent[key]
+        parent[keys[-1]] = value
+        self.save_config()
 
-        parent_data = self.data
-        for i, key in enumerate(keys):
-            if i == len(keys) - 1: # Last key in the path
-                if isinstance(parent_data, dict) and key in parent_data:
-                    del parent_data[key]
-                    self.save_config()
-                return # Key not found or parent is not a dict
-            else: # Not the last key, navigate deeper
-                if isinstance(parent_data, dict) and key in parent_data and isinstance(parent_data[key], dict):
-                    parent_data = parent_data[key]
-                else:
-                    return # Path broken, key or parent not found, or not a dict
+    def delete(self, key_path: KeyPath) -> bool:
+        keys = self._keys(key_path)
+        if not keys:
+            return False
+        parent: Any = self.data
+        for key in keys[:-1]:
+            parent = parent.get(key) if isinstance(parent, dict) else None
+            if not isinstance(parent, dict):
+                return False
+        if keys[-1] in parent:
+            del parent[keys[-1]]
+            self.save_config()
+            return True
+        return False
 
-    def reset_config(self):
-        """Resets the configuration file to an empty dictionary and saves it."""
+    def reset_config(self) -> None:
         self.data = {}
         self.save_config()
 
-    def switch_config_file(self, new_config_file_name: str):
-        """Switches to a different JSON configuration file and loads its data."""
-        self.config_file_name = new_config_file_name
-        self.config_file_name = self.config_directory / self.config_file_name
+    def reload(self) -> None:
         self.data = self._load_config()
 
-    # get_all_keys needs to decide if it returns all top-level keys
-    # or keys of a specific nested section. Let's make it more flexible.
-    def get_all_keys(self, key_path: str = None) -> list[str]:
-        """
-        Gets all keys from the configuration.
-        If key_path is provided (e.g., 'custom_paths'), returns keys of that nested dictionary.
-        Otherwise, returns all top-level keys.
-        """
+    def get_all_keys(self, key_path: KeyPath | None = None) -> list[str]:
         if key_path:
-            nested_data = self.get(key_path, {})
-            if isinstance(nested_data, dict):
-                return list(nested_data.keys())
-            return [] # If key_path leads to a non-dict value
+            nested = self.get(key_path, {})
+            return list(nested.keys()) if isinstance(nested, dict) else []
         return list(self.data.keys())
-
-    # The specific custom_path methods are now redundant with the new set/get/delete
-    # but I'll leave them commented out for now to show the transition.
-    # def add_custom_path(self, config_name: str, name: str, path: str):
-    #     self.set(f"{config_name}.{name}", path)
-
-    # def get_custom_paths(self, config_name: str) -> dict[str, str]:
-    #     return self.get(config_name, {})
-
-    # def remove_custom_path(self, config_name: str, name: str):
-    #     self.delete(f"{config_name}.{name}")

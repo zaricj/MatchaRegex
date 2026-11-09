@@ -1,36 +1,26 @@
-from collections import Counter, defaultdict
-from typing import Any
+from collections import Counter
+from typing import Any, Iterable
 
-def count_occurrences_by_key(results: list[dict[str, Any]], key_field: str) -> list[dict[str, Any]]:
+
+def count_occurrences_by_key(results: Iterable[dict[str, Any]], key_field: str) -> tuple[list[str], list[dict[str, Any]]]:
     """
-    Count how many times each unique value of `key_field` occurs per file.
-    Returns a summarized list of dicts like:
-        [{"File": "file1.log", "user": "alice", "Count": 3}, ...]
+    Count how many times each non-empty value of ``key_field`` occurs per file.
+
+    Returns ``(columns, rows)`` sorted by file, then by count (descending), e.g.
+    ``(["File", "user", "Count"], [{"File": "a.log", "user": "alice", "Count": 3}, ...])``.
     """
-    if not results or key_field not in results[0]:
-        return []
+    counts: Counter[tuple[str, Any]] = Counter()
+    for row in results:
+        value = row.get(key_field, "")
+        if value not in ("", None):
+            counts[(row.get("File", ""), value)] += 1
 
-    counts = defaultdict(Counter)
-    for r in results:
-        file = r.get("File", "")
-        key_value = r.get(key_field, "")
-        if key_value:
-            counts[file][key_value] += 1
+    if key_field == "File":
+        columns = ["File", "Count"]
+        summary = [{"File": f, "Count": c} for (f, _v), c in counts.items()]
+    else:
+        columns = ["File", key_field, "Count"]
+        summary = [{"File": f, key_field: v, "Count": c} for (f, v), c in counts.items()]
 
-    summary = []
-    for file, file_counts in counts.items():
-        for value, count in file_counts.items():
-            summary.append({"File": file, key_field: value, "Count": count})
-    return summary
-
-class DisplayCountOccurrences:
-    """
-    A class to encapsulate the counting logic.
-    """
-
-    def __init__(self, key_field: str):
-        self.key_field = key_field
-
-    def process(self, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        return count_occurrences_by_key(results, self.key_field)
-    
+    summary.sort(key=lambda r: (str(r["File"]).lower(), -r["Count"]))
+    return columns, summary

@@ -1,170 +1,92 @@
+r"""
+Streaming log segmenters.
+
+A segmenter turns an iterable of text lines into logical *blocks* — the unit a
+regex is applied to.  Blocks are yielded as ``(start_line, text)`` tuples where
+``start_line`` is the 1-based line number of the block's first line.  The
+block's final line break is removed so ``\Z`` / ``$`` anchor at the block end.
+
+Everything streams: only the current block is held in memory, so files of any
+size can be searched without loading them completely.
+"""
+from __future__ import annotations
+
+import itertools
 import re
-from typing import List, Tuple
+from typing import Iterable, Iterator
+
+Block = tuple[int, str]
+
+SEGMENTATION_MODES = ("Auto", "Timestamp", "Exception", "Line")
+
+# Lines that start a new block in the respective mode.
+TIMESTAMP_BOUNDARY = re.compile(r"^\s*\d{2}:\d{2}:\d{2}")
+EXCEPTION_BOUNDARY = re.compile(r"^\w+(?:\.\w+)*(?:Exception|Error):")
+
+# Auto-detection only looks at the head of a file.
+DETECT_SAMPLE_LINES = 100
+_DETECT_TIMESTAMP = re.compile(r"^\d{2}:\d{2}:\d{2}", re.MULTILINE)
+_DETECT_EXCEPTION = re.compile(r"^\w+(?:\.\w+)*(?:Exception|Error):", re.MULTILINE)
 
 
-class BaseSegmenter:
-    def split(self, text: str) -> List[Tuple[int, str]]:
-        """Returns a list of (start_offset, text_block) tuples."""
-        raise NotImplementedError
+def _trim(text: str) -> str:
+    """Drop exactly one trailing line break."""
+    return text[:-1] if text.endswith("\n") else text
 
 
-class TimestampSegmenter(BaseSegmenter):
+def detect_mode(sample: str) -> str:
+    """Pick the best segmentation mode from a sample of the file's first lines."""
+    if _DETECT_TIMESTAMP.search(sample):
+        return "Timestamp"
+    if _DETECT_EXCEPTION.search(sample):
+        return "Exception"
+    return "Line"
+
+
+def iter_line_blocks(lines: Iterable[str]) -> Iterator[Block]:
+    """Every non-blank line is its own block."""
+    for line_no, line in enumerate(lines, start=1):
+        if line.strip():
+            yield line_no, _trim(line)
+
+
+def iter_boundary_blocks(lines: Iterable[str], boundary: re.Pattern) -> Iterator[Block]:
     """
-    Splits a log file into multi-line blocks, where each block starts
-    with a timestamp. Handles log entries that span multiple lines.
-    e.g.:
-        12:00:01 Starting process
-        12:00:02 Error occurred
-                 details on second line   <- kept with the block above
-        12:00:03 Done
+    Group lines into blocks; a new block starts at every line matching ``boundary``.
+    Continuation lines (stack traces, wrapped messages) stay with their header.
+    Whitespace-only blocks are dropped.
     """
-    def __init__(self, pattern: str = r'\d{2}:\d{2}:\d{2}'):
-        # Use a lookahead so the timestamp itself is kept at the start of each block
-        self.regex = re.compile(rf'(?=^\s*{pattern})', re.MULTILINE)
+    buffer: list[str] = []
+    start_line = 1
+    for line_no, line in enumerate(lines, start=1):
+        if buffer and boundary.match(line):
+            text = "".join(buffer)
+            if text.strip():
+                yield start_line, _trim(text)
+            buffer = []
+        if not buffer:
+            start_line = line_no
+        buffer.append(line)
 
-    def split(self, text: str) -> List[Tuple[int, str]]:
-        matches = list(self.regex.finditer(text))
-        if not matches:
-            return [(0, text)] if text.strip() else []
-
-        blocks = []
-        # First block: from 0 to first match start
-        if matches[0].start() > 0:
-            content = text[:matches[0].start()]
-            if content.strip():
-                blocks.append((0, content))
-            else:
-                # If it's just whitespace, we treat it as the start of the first block
-                # but we need to handle the fact that the first segment is empty.
-                # Actually, let's just add it and let the consumer handle it.
-                blocks.append((0, content))
-        else:
-            # The first match starts at 0
-            pass
-
-        # Intermediate blocks
-        for i in range(len(matches) - 1):
-            start = matches[i].start()
-            end = matches[i+1].start()
-            content = text[start:end]
-            if content.strip():
-                blocks.append((start, content))
-            elif i == 0 and matches[0].start() == 0:
-                # If the first match was at 0, we already handled the 'start'
-                pass
-            else:
-                # Handle empty blocks if they aren't just whitespace
-                blocks.append((start, content))
-
-        # Last block: from last match start to end of text
-        last_start = matches[-1].start()
-        last_content = text[last_start:]
-        if last_content.strip():
-            blocks.append((last_start, last_content))
-        elif last_start < len(text):
-            # It might be whitespace, but still worth including if it's not just empty
-            blocks.append((last_start, last_content))
-
-        # Filter out truly empty/whitespace blocks that aren't needed
-        # but we should be careful not to break the offsets.
-        # Actually, it's safer to return all blocks and let the consumer filter.
-        # But to match previous behavior:
-        
-        # Let's re-do it more carefully.
-        return self._get_segments(text, matches)
-
-    def _get_segments(self, text: str, matches: list) -> List[Tuple[int, str]]:
-        segments = []
-        last_pos = 0
-        for m in matches:
-            start = m.start()
-            if start > last_pos:
-                content = text[last_pos:start]
-                if content.strip():
-                    segments.append((last_pos, content))
-            last_pos = start
-        
-        # Last segment
-        if last_pos < len(text):
-            content = text[last_pos:]
-            if content.strip():
-                segments.append((last_pos, content))
-        
-        # If no segments found but text is not empty
-        if not segments and text.strip():
-            segments.append((0, text))
-            
-        return segments
+    if buffer:
+        text = "".join(buffer)
+        if text.strip():
+            yield start_line, _trim(text)
 
 
-class ExceptionSegmenter(BaseSegmenter):
-    """
-    Splits on Java/Python-style exception boundaries.
-    e.g. "com.example.SomeException:" or "ValueError:"
-    Keeps the exception header attached to its stack trace.
-    """
-    def split(self, text: str) -> List[Tuple[int, str]]:
-        # pattern: r'(?=^\w+(?:\.\w+)*(?:Exception|Error):)'
-        pattern = r'(?=^\w+(?:\.\w+)*(?:Exception|Error):)'
-        matches = list(re.finditer(pattern, text, flags=re.MULTILINE))
-        return self._get_segments(text, matches)
+def iter_blocks(lines: Iterable[str], mode: str = "Auto") -> Iterator[Block]:
+    """Segment ``lines`` according to ``mode`` (one of ``SEGMENTATION_MODES``)."""
+    if mode not in SEGMENTATION_MODES:
+        mode = "Auto"
 
-    def _get_segments(self, text: str, matches: list) -> List[Tuple[int, str]]:
-        segments = []
-        last_pos = 0
-        for m in matches:
-            start = m.start()
-            if start > last_pos:
-                content = text[last_pos:start]
-                if content.strip():
-                    segments.append((last_pos, content))
-            last_pos = start
-        
-        if last_pos < len(text):
-            content = text[last_pos:]
-            if content.strip():
-                segments.append((last_pos, content))
-        
-        if not segments and text.strip():
-            segments.append((0, text))
-            
-        return segments
+    if mode == "Auto":
+        lines = iter(lines)
+        head = list(itertools.islice(lines, DETECT_SAMPLE_LINES))
+        mode = detect_mode("".join(head))
+        lines = itertools.chain(head, lines)
 
-
-class LineSegmenter(BaseSegmenter):
-    """
-    Fallback: each line is its own block. Used for simple single-line log formats.
-    """
-    def split(self, text: str) -> List[Tuple[int, str]]:
-        segments = []
-        for m in re.finditer(r'\n', text):
-            # The newline is at m.start()
-            # The line is from the last newline (or 0) to m.start()
-            # But we want to include the newline.
-            pass
-        # Simpler:
-        # Just iterate through lines and their offsets.
-        
-        lines = text.splitlines(keepends=True)
-        current_offset = 0
-        for line in lines:
-            if line.strip():
-                segments.append((current_offset, line))
-            current_offset += len(line)
-        
-        return segments
-
-def detect_segmenter(text: str) -> BaseSegmenter:
-    """
-    Inspects the first ~100 lines to decide the best segmenter.
-    Avoids scanning the entire file just for detection.
-    """
-    sample = "\n".join(text.splitlines()[:100])
-
-    if re.search(r'^\d{2}:\d{2}:\d{2}', sample, re.MULTILINE):
-        return TimestampSegmenter()
-
-    if re.search(r'^\w+(?:\.\w+)*(?:Exception|Error):', sample, re.MULTILINE):
-        return ExceptionSegmenter()
-
-    return LineSegmenter()
+    if mode == "Timestamp":
+        return iter_boundary_blocks(lines, TIMESTAMP_BOUNDARY)
+    if mode == "Exception":
+        return iter_boundary_blocks(lines, EXCEPTION_BOUNDARY)
+    return iter_line_blocks(lines)

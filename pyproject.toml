@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "auto-py-to-exe>=2.47.0",
-    "pandas>=2.3.2",
-    "pyarrow>=21.0.0",
     "pyside6-essentials>=6.9.2",
     "xlsxwriter>=3.2.5",
+]
+
+[dependency-groups]
+dev = [
+    "nuitka>=4.3.5",
 ]

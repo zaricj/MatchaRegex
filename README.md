@@ -1,6 +1,6 @@
 # MatchaRegex - Log File Search & Analysis
 
-MatchaRegex is a desktop application for searching, analyzing, and exporting results from log files using advanced regular expressions. It features a modern UI built with PySide6 and supports dynamic regex pattern generation, named groups, and exporting results to Excel.
+MatchaRegex is a desktop application for searching log files with regular expressions and turning the matches into clean tabular data. Named capture groups become table columns, and results can be filtered, counted and exported to Excel or CSV. The UI is built with PySide6.
 
 ![app-logo](docs/images/matcha-latte-logo.png)
 
@@ -10,64 +10,134 @@ MatchaRegex is a desktop application for searching, analyzing, and exporting res
 
 ## Features
 
-- **Folder Selection**: Choose a directory containing log files to search.
-- **File Pattern Filtering**: Specify file patterns (wildcards, comma-separated) to limit which files are searched.
-- **Regex Pattern Builder**: Convert sample text to regex patterns, including support for named groups.
-- **Pattern List Management**: Add, remove, and clear regex patterns from the active search list.
-- **Multiline Search**: Enable multiline regex search for line-by-line or whole-file matching.
-- **Search Results Table**: View matches in a table with named group extraction.
-- **Export to Excel**: Save search results to an Excel file with formatted tables.
-- **System Output Panel**: View status messages and logs during processing.
-- **Help & Resources**: Quick access to Regex101 and Regex Cheatsheet.
+- **Folder & file patterns** – search a folder with comma-separated glob patterns (`*.log, *.txt`, recursive `**/*.log`). Without a pattern, every file in the folder is searched. Binary files are skipped automatically.
+- **Named groups → columns** – `(?P<user>\w+)` becomes a `user` column. Every row also contains `File`, `Line`, `Column` and `Pattern`; patterns without named groups fill a `Match` column.
+- **Segmentation modes** – decide which text a pattern sees at once:
+  - `Line` – every line on its own.
+  - `Timestamp` – multi-line log entries starting with `HH:MM:SS`.
+  - `Exception` – Java/Python exception headers with their stack trace.
+  - `Auto` – detected from the first 100 lines of each file.
+- **Multiline search** – searches each file as a whole, so patterns can span any number of lines (files over 256 MB fall back to segments).
+- **Live results & Stop** – matches appear while the search runs. Searches run in separate worker processes, so the window stays responsive and *Stop Search* works even if a pattern gets stuck in catastrophic backtracking.
+- **Parallel processing** – optionally search with multiple processes (half of the CPU cores).
+- **Row limit** – stop after a maximum number of matches.
+- **Filter & sort** – filter the results table across all columns and sort by any column.
+- **Count occurrences** – count how often each value of a column occurs per file.
+- **Export** – Excel (`.xlsx`, formatted table) or CSV (comma or semicolon separated, UTF-8 with BOM). Exports contain exactly the filtered and sorted rows you see. Cell content is never turned into Excel formulas.
+- **Encoding detection** – UTF-8, UTF-8/UTF-16 with BOM, and latin-1 fallback.
+- **Regex builder** – generate a regex from a sample string (IP, email, date, UUID, URL, …).
+- **Pattern presets** – save pattern sets, manage them in the *Regex Expression Manager*, and import pattern profiles from JSON.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.12+
-- [PySide6](https://pypi.org/project/PySide6/)
-- [pandas](https://pypi.org/project/pandas/)
-- [xlsxwriter](https://pypi.org/project/XlsxWriter/)
+- Python 3.13+
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+
+Runtime dependencies are [PySide6](https://pypi.org/project/PySide6-Essentials/) and [XlsxWriter](https://pypi.org/project/XlsxWriter/), declared in `pyproject.toml`.
 
 ### Installation
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/MatchaRegex.git
-    cd MatchaRegex
-    ```
+```sh
+git clone https://github.com/yourusername/MatchaRegex.git
+cd MatchaRegex
+uv sync
+```
 
-2. Install dependencies:
-    ```sh
-    pip install -r requirements.txt
-    ```
+Without uv: `python -m venv .venv`, activate it, then `pip install pyside6-essentials xlsxwriter`.
 
-3. Run the application:
-    ```sh
-    python src/main.py
-    ```
+### Run
+
+```sh
+uv run src/main.py
+```
+
+## Building a Standalone Executable (Windows)
+
+The app is compiled with [Nuitka](https://nuitka.net/) (installed as a dev dependency by `uv sync`):
+
+```powershell
+.\build.ps1 -Clean
+```
+
+The result is `build\main.dist\MatchaRegex.exe`. Distribute the whole `main.dist` folder.
+
+| Option | Effect |
+| --- | --- |
+| `-Clean` | Remove the previous build output first |
+| `-IncludeConfig` | Ship your local `src\config` (saved presets) with the build |
+| `-Console` | Keep a console window open for debugging |
+
+If no C compiler (Visual Studio Build Tools) is installed, Nuitka downloads one automatically on the first build.
+
+## Alternative Layout (preview)
+
+An alternative, redesigned layout is available next to the classic one. Switch with **View → Alternative Layout** (the app offers to restart), or start it once with:
+
+```sh
+uv run src/main.py --alt-ui      # --classic-ui forces the classic layout
+```
+
+It uses a card-based layout with a sidebar for patterns and options, a source bar with the primary *Start Search* action, an empty state, a live row counter, and a collapsible output panel. Keyboard shortcuts:
+
+| Shortcut | Action |
+| --- | --- |
+| `F5` / `Ctrl+Enter` | Start / stop search |
+| `Ctrl+O` | Browse folder |
+| `Ctrl+L` | Focus regex input (`Enter` adds the pattern) |
+| `Ctrl+F` | Filter results |
+| `Ctrl+E` | Export |
+| `Del` | Remove selected pattern |
+
+Each layout remembers its own window size and splitter positions.
 
 ## Usage
 
-1. **Select Folder**: Use the "Browse" button to choose a folder with log files.
-2. **Set File Patterns**: Optionally enter file patterns (e.g., `*.log,*.txt`) to filter files.
-3. **Build Regex**: Enter sample text and click "Convert" to generate a regex pattern.
-4. **Manage Patterns**: Add generated or manual regex patterns to the search list.
-5. **Start Search**: Click "Start Search" to process files and view results.
-6. **Export Results**: Use "Export to Excel" to save results for further analysis.
+1. **Select folder** – *Browse* or paste a folder path. The status bar shows how many files match.
+2. **File patterns** – optionally enter patterns such as `*.log,*.txt`.
+3. **Build patterns** – type a regex, or convert a sample string, then *Add* it to the list. Invalid patterns are rejected immediately.
+4. **Options** – choose the segmentation mode, multiline search, parallel processing and row limit.
+5. **Start Search** – results stream into the table. Click the same button again to stop.
+6. **Analyse** – filter, sort, or count occurrences of a column.
+7. **Export** – choose Excel or CSV in the save dialog.
 
-## UI Overview
+## Pattern Profile JSON
 
-- **Input Panel**: Folder path, file pattern, sample-to-regex conversion, regex input.
-- **Pattern List**: Active regex patterns for searching.
-- **Results Panel**: Table of matches, export and clear buttons, row limit, multiline search toggle.
-- **System Output**: Status messages and logs.
+*Autofill → Import Pattern Profile JSON* loads every string value whose key contains `pattern`:
 
-## Advanced Features
+```json
+{
+  "default_profile": "errors",
+  "base_patterns": { "header_pattern": "Error-log for '(?P<profile>[^']+)'" },
+  "profiles": {
+    "errors": { "caused_by_pattern": "^\\s*Caused by:\\s*(?P<cause>.*)" }
+  }
+}
+```
 
-- **Named Groups**: Regex patterns with named groups are supported and extracted in results.
-- **Multithreading**: File processing and export operations run in background threads for responsiveness.
-- **Cross-Platform**: Works on Windows, macOS, and Linux.
+Imported profiles are saved as presets in `src/config/config.json`.
+
+## Project Structure
+
+```text
+src/
+├── main.py                  # Entry point
+├── app.py                   # Main window
+├── app_paths.py             # File locations (source and compiled build)
+├── core/
+│   ├── search/engine.py     # Regex search engine (pure Python, runs in worker processes)
+│   ├── search/segmenters.py # Streaming Line/Timestamp/Exception segmentation
+│   ├── models/              # Qt table model for results
+│   ├── analysis/            # Count occurrences
+│   └── patterns/            # Regex builder, pattern profiles
+├── services/
+│   ├── workers/             # Search thread + generic thread-pool worker
+│   ├── export/              # CSV / Excel export
+│   ├── config/              # JSON config handler
+│   └── mixins/, utils/      # Signal wiring, helpers
+└── gui/                     # Generated UI, dialogs, assets
+```
 
 ## Contributing
 
@@ -80,10 +150,7 @@ MIT License
 ## Acknowledgements
 
 - [PySide6](https://www.qt.io/qt-for-python)
-- [pandas](https://pandas.pydata.org/)
 - [XlsxWriter](https://xlsxwriter.readthedocs.io/)
+- [Nuitka](https://nuitka.net/)
 - [Regex101](https://regex101.com/)
 - [RegexLearn Cheatsheet](https://regexlearn.com/cheatsheet)
-
----
-For more details, see the source code in [src/main.py](src/main.py), [src/modules/regex_builder.py](src/modules/regex_builder.py), and [src/modules/regex_processor.py](src/modules/regex_processor.py).
