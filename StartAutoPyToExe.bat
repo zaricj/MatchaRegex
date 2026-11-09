@@ -1,2 +1,0 @@
-ECHO "Starting auto-py-to-exe with predefined configuration..."
-C:\Users\ZaricJ\Documents\Entwicklung_und_Tools\GitHub\MatchaRegex\.venv\Scripts\auto-py-to-exe.exe -c c:\Users\ZaricJ\Documents\Entwicklung_und_Tools\GitHub\MatchaRegex\AutoPyToExeConfiguration.json
