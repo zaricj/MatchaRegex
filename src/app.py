@@ -347,6 +347,13 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
 
         self.settings.setValue("Application_Theme", self.current_app_theme)
         save_window_state(self, self.settings, self._state_prefix)
+
+        # The regex manager is a parentless top-level window. Qt only quits once
+        # every such window is closed, so leaving it open would keep the process
+        # alive after the main window is gone (and a layout restart would leave
+        # two instances running).
+        if self._regex_manager is not None:
+            self._regex_manager.close()
         super().closeEvent(event)
 
     # ======================================================================
