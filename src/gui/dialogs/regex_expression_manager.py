@@ -37,13 +37,15 @@ class PreBuiltRegexManagerWidget(QWidget):
         self.ui.button_remove_selected.clicked.connect(self.onRemoveSelected)
         self.ui.button_remove_all.clicked.connect(self.onRemoveAll)
         
-        # 2. Connect list widget signals to update the active_list_widget
-        self.ui.list_widget_xpath_expressions.itemClicked.connect(
-            lambda: self._set_active_list(self.ui.list_widget_xpath_expressions)
-        )
-        self.ui.list_widget_edit_xpath_expressions.itemClicked.connect(
-            lambda: self._set_active_list(self.ui.list_widget_edit_xpath_expressions)
-        )
+        # Track the list the user last interacted with: "Remove selected" and
+        # "Remove all" act on it. itemClicked covers re-clicking the already
+        # current item; currentItemChanged covers keyboard navigation.
+        for list_widget in (self.ui.list_widget_xpath_expressions,
+                            self.ui.list_widget_edit_xpath_expressions):
+            list_widget.itemClicked.connect(
+                lambda _item, lw=list_widget: self._set_active_list(lw))
+            list_widget.currentItemChanged.connect(
+                lambda current, _previous, lw=list_widget: current is not None and self._set_active_list(lw))
 
         
         # Initialize current app theme
@@ -193,17 +195,15 @@ class PreBuiltRegexManagerWidget(QWidget):
     
     @Slot()
     def onRemoveSelected(self) -> None:
-        # Check all list widgets for a selected item
-        list_of_widgets = [self.ui.list_widget_xpath_expressions, 
-                        self.ui.list_widget_edit_xpath_expressions]
-        
-        for lw in list_of_widgets:
-            current_row = lw.currentRow()
-            if current_row != -1:
-                lw.takeItem(current_row)
-                return  # remove only one item per click
+        # Remove from the list the user last selected in. Checking the lists in a
+        # fixed order would always hit the left list, since a QListWidget keeps
+        # its current row after losing focus.
+        lw = self.active_list_widget
+        current_row = lw.currentRow() if lw is not None else -1
+        if current_row != -1:
+            lw.takeItem(current_row)  # remove only one item per click
+            return
 
-        # If no item is selected
         QMessageBox.information(self, "No selection", "Please select an item to remove.")
 
     @Slot()
