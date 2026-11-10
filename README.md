@@ -14,7 +14,7 @@ MatchaRegex is a desktop application for searching log files with regular expres
 - **Named groups → columns** – `(?P<user>\w+)` becomes a `user` column. Every row also contains `File`, `Line`, `Column` and `Pattern`; patterns without named groups fill a `Match` column.
 - **Segmentation modes** – decide which text a pattern sees at once:
   - `Line` – every line on its own.
-  - `Timestamp` – multi-line log entries starting with `HH:MM:SS`.
+  - `Timestamp` – multi-line log entries starting with a date or time, e.g. `12:00:00`, `2024-05-01 12:00:00`, `01.05.2024`, `[2024-05-01T12:00:00]`, `May  1 12:00:00` (syslog) or `01/May/2024:12:00:00`. Indented lines always continue the current entry.
   - `Exception` – Java/Python exception headers with their stack trace.
   - `Auto` – detected from the first 100 lines of each file.
 - **Multiline search** – searches each file as a whole, so patterns can span any number of lines (files over 256 MB fall back to segments).

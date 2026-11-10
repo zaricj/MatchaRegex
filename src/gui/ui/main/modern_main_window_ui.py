@@ -295,7 +295,8 @@ class Ui_ModernMainWindow:
         self.combobox_segmentation_mode.setToolTip(
             "Which text a pattern sees at once:\n"
             "Line – every line on its own\n"
-            "Timestamp – log entries starting with HH:MM:SS\n"
+            "Timestamp – log entries starting with a date or time\n"
+            "    (12:00:00, 2024-05-01 …, 01.05.2024, [2024-05-01T…], May  1 12:00:00)\n"
             "Exception – exception header with its stack trace\n"
             "Auto – detected from the first 100 lines")
         self.label_segmentation_mode.setBuddy(self.combobox_segmentation_mode)
