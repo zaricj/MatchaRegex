@@ -447,9 +447,11 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
     def on_removeSelectedRegexPattern(self):
         row = self.ui.list_widget_regex.currentRow()
         if 0 <= row < len(self.regex_patterns):
-            item = self.ui.list_widget_regex.takeItem(row)
-            del self.regex_patterns[row]
-            self.ui.statusbar.showMessage(f"Removed {item.text()} from list!", 5000)
+            # takeItem returns a QListWidgetItem (classic) or QTreeWidgetItem (alternative
+            # layout, text() needs a column) — describe the removed pattern from the spec.
+            self.ui.list_widget_regex.takeItem(row)
+            spec = self.regex_patterns.pop(row)
+            self.ui.statusbar.showMessage(f"Removed {spec.name} = {spec.expression} from list!", 5000)
 
     @Slot()
     def on_removeAllRegexPattern(self):
