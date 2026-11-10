@@ -18,6 +18,7 @@ import codecs
 import multiprocessing
 import re
 import time
+from collections import deque
 from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, wait
 from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass, field
@@ -427,8 +428,11 @@ def run_search(
 
     if use_processes:
         try:
-            _run_in_processes(files, options, workers, accept, remaining_limit, should_stop, summary)
+            _run_in_processes(files, options, workers, accept, remaining_limit, should_stop, summary, on_log)
         except BrokenProcessPool as exc:
+            # Only raised when worker processes cannot run at all (every file
+            # crashes, none ever succeeds). A single crashing file is isolated
+            # and skipped inside _run_in_processes instead.
             if summary.cancelled:
                 pass
             else:
@@ -464,60 +468,143 @@ def _run_in_thread(files, options, compiled, accept, remaining_limit, should_sto
             return
 
 
-def _run_in_processes(files, options, workers, accept, remaining_limit, should_stop, summary) -> None:
+WORKER_CRASH_ERROR = (
+    "worker process crashed while searching this file "
+    "(out of memory or a native crash?); file skipped"
+)
+# Crashes seen before any file succeeded may mean worker processes cannot run
+# at all (e.g. a broken frozen build) rather than bad files. After this many
+# such crashes, BrokenProcessPool is raised and run_search falls back in-process.
+_MAX_CRASHES_WITHOUT_SUCCESS = 3
+
+
+def _run_in_processes(files, options, workers, accept, remaining_limit, should_stop, summary, on_log) -> None:
+    """
+    Search ``files`` in a process pool, emitting results in file order.
+
+    Crash handling: when a worker process dies (e.g. out of memory on a huge
+    file), every task in flight fails with ``BrokenProcessPool`` and the
+    culprit is unknown. The pool is restarted and those suspects are re-run
+    one at a time; a file that crashes on its own is reported as failed and
+    skipped. The crashing file is never searched in the GUI process.
+    """
     workers = max(1, min(workers, len(files)))
     window = workers * 2                       # bounded queue → early stop is cheap
     context = multiprocessing.get_context("spawn")   # fork + Qt threads is unsafe
-    executor = ProcessPoolExecutor(max_workers=workers, mp_context=context)
 
+    def new_pool() -> ProcessPoolExecutor:
+        return ProcessPoolExecutor(max_workers=workers, mp_context=context)
+
+    executor = new_pool()
     pending: dict[Future, int] = {}
     finished: dict[int, FileResult] = {}
+    isolate: deque[int] = deque()              # crash suspects, re-run one at a time
+    unconfirmed: dict[int, FileResult] = {}    # crashes seen before any file succeeded
+    any_success = False
     next_submit = 0
     next_emit = 0
     stop_now = False
 
+    def submit(index: int) -> None:
+        path = files[index]
+        future = executor.submit(
+            _search_file_task,
+            str(path),
+            file_label(path, options.folder),
+            options.patterns,
+            options.segmentation_mode,
+            options.whole_file,
+            remaining_limit(),
+        )
+        pending[future] = index
+
     def submit_more() -> None:
         nonlocal next_submit
-        while next_submit < len(files) and len(pending) < window:
-            path = files[next_submit]
-            future = executor.submit(
-                _search_file_task,
-                str(path),
-                file_label(path, options.folder),
-                options.patterns,
-                options.segmentation_mode,
-                options.whole_file,
-                remaining_limit(),
-            )
-            pending[future] = next_submit
-            next_submit += 1
+        try:
+            if isolate:
+                # Nothing else may run next to a suspect, or a crash is ambiguous again.
+                if not pending:
+                    submit(isolate[0])
+                    isolate.popleft()
+                return
+            while next_submit < len(files) and len(pending) < window:
+                submit(next_submit)
+                next_submit += 1
+        except BrokenProcessPool:
+            # A worker died after the last wait(). The futures in flight will
+            # report it; with nothing in flight, restart the pool right away.
+            if not pending:
+                handle_crash([])
+
+    def handle_crash(crashed: list[int]) -> None:
+        nonlocal executor
+        suspects = sorted(set(crashed) | set(pending.values()))
+        pending.clear()
+        executor.shutdown(wait=False, cancel_futures=True)
+        if len(suspects) == 1:
+            index = suspects[0]
+            result = FileResult(file_label(files[index], options.folder), error=WORKER_CRASH_ERROR)
+            if any_success:
+                finished[index] = result
+            else:
+                unconfirmed[index] = result
+                if len(unconfirmed) >= _MAX_CRASHES_WITHOUT_SUCCESS:
+                    raise BrokenProcessPool(
+                        f"{len(unconfirmed)} files crashed their worker process and none succeeded")
+        elif suspects:
+            on_log(f"[WARN] A worker process crashed; re-running {len(suspects)} file(s) "
+                   "one at a time to find the cause.")
+            isolate.extend(suspects)
+        executor = new_pool()
+
+    def emit_ready() -> None:
+        """Emit strictly in file order."""
+        nonlocal next_emit, stop_now
+        while next_emit in finished:
+            if not accept(finished.pop(next_emit)):
+                stop_now = True
+                return
+            next_emit += 1
+
+    def has_work() -> bool:
+        return bool(pending or isolate or next_submit < len(files))
 
     try:
         submit_more()
-        while pending and not stop_now:
+        while has_work() and not stop_now:
             done, _ = wait(pending, timeout=0.1, return_when=FIRST_COMPLETED)
             if should_stop():
                 summary.cancelled = True
                 break
+            crashed: list[int] = []
             for future in done:
                 index = pending.pop(future)
-                path = files[index]
                 try:
                     finished[index] = future.result()
                 except BrokenProcessPool:
-                    raise
+                    crashed.append(index)
+                    continue
                 except Exception as exc:          # unexpected error in worker
                     finished[index] = FileResult(
-                        file_label(path, options.folder), error=f"{type(exc).__name__}: {exc}"
+                        file_label(files[index], options.folder), error=f"{type(exc).__name__}: {exc}"
                     )
-            # Emit strictly in file order.
-            while next_emit in finished:
-                if not accept(finished.pop(next_emit)):
-                    stop_now = True
-                    break
-                next_emit += 1
+                if not any_success:
+                    # Processes work, so earlier crashes really were caused by those files.
+                    any_success = True
+                    finished.update(unconfirmed)
+                    unconfirmed.clear()
+            if crashed:
+                handle_crash(crashed)
+            emit_ready()
             if not stop_now:
                 submit_more()
+
+        if not summary.cancelled and not stop_now and unconfirmed:
+            # Every file crashed and there were too few to tell a broken setup
+            # from bad files. Report them rather than risk crashing the GUI process.
+            finished.update(unconfirmed)
+            unconfirmed.clear()
+            emit_ready()
     finally:
         aborted = summary.cancelled or stop_now
         if aborted:
