@@ -40,9 +40,9 @@ class RegexBuilder:
                 'grouped_pattern': r"(?P<datetime>\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2})"
             },
             'uuid': {
-                'match_pattern': r"^[0-9a-fA-F-]{36}$",
-                'regex_pattern': r"[0-9a-fA-F-]{36}",
-                'grouped_pattern': r"(?P<uuid>[0-9a-fA-F-]{36})"
+                'match_pattern': r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                'regex_pattern': r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+                'grouped_pattern': r"(?P<uuid>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
             },
             'hex': {
                 'match_pattern': r"^[0-9a-fA-F]+$",
@@ -85,12 +85,27 @@ class RegexBuilder:
                 'grouped_pattern': r"(?P<status>[1-5]\d{2})"
             },
         }
-    
+        # First match wins, so specific types must come before generic ones:
+        # "GET" is also a word, "200" also a number, "12345"/"abc" also hex.
+        self.detection_order = (
+            'ip', 'email', 'uuid', 'url', 'datetime', 'date_iso', 'date_us', 'time',
+            'http_method', 'http_status', 'decimal', 'number', 'phone', 'word', 'hex',
+        )
+        assert set(self.detection_order) == set(self.common_patterns)
+
+    @staticmethod
+    def safe_group_name(name: str) -> str:
+        """Turn arbitrary text into a valid regex group name ("my-group" → "my_group")."""
+        cleaned = re.sub(r"\W", "_", name.strip())
+        if not cleaned:
+            return "group"
+        return f"_{cleaned}" if cleaned[0].isdigit() else cleaned
+
     def detect_pattern_type(self, sample: str) -> Optional[str]:
         """Detect what type of pattern the sample represents."""
         sample = sample.strip()
-        for pattern_name, pattern_info in self.common_patterns.items():
-            if re.match(pattern_info['match_pattern'], sample):
+        for pattern_name in self.detection_order:
+            if re.match(self.common_patterns[pattern_name]['match_pattern'], sample):
                 return pattern_name
         return None
     
@@ -112,10 +127,7 @@ class RegexBuilder:
             if use_groups:
                 if group_name:
                     # Use custom group name
-                    return pattern_info['regex_pattern'].replace(
-                        pattern_info['regex_pattern'],
-                        f"(?P<{group_name}>{pattern_info['regex_pattern']})"
-                    )
+                    return f"(?P<{self.safe_group_name(group_name)}>{pattern_info['regex_pattern']})"
                 else:
                     # Use default grouped pattern
                     return pattern_info['grouped_pattern']
@@ -167,7 +179,7 @@ class RegexBuilder:
         pattern = "".join(regex_parts)
         
         if use_groups and group_name:
-            pattern = f"(?P<{group_name}>{pattern})"
+            pattern = f"(?P<{self.safe_group_name(group_name)}>{pattern})"
         
         return pattern
     
