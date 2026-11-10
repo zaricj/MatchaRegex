@@ -22,7 +22,14 @@ from services.workers.thread_worker import Worker
 AUTOFILL_KEY = "custom_regex_autofill"
 
 # Legacy config entries were sometimes saved as "name = expression" strings.
+# Every name the app ever generated contains "pattern" ("Pattern3", profile keys
+# like "http_url_pattern"), so only those are split — a plain regex such as
+# "status = (?P<code>\d+)" must stay intact.
 _LEGACY_ENTRY = re.compile(r"^(?P<name>[A-Za-z_]\w*) = (?P<expression>.+)$", re.DOTALL)
+
+
+def _is_legacy_name(name: str) -> bool:
+    return "pattern" in name.lower()
 
 EXPORT_FILTER_XLSX = "Excel Workbook (*.xlsx)"
 EXPORT_FILTER_CSV = "CSV, comma separated (*.csv)"
@@ -270,7 +277,8 @@ class MainWindow(QMainWindow, SignalHandlerMixin):
             expression = str(entry).strip()
             name = ""
             legacy = _LEGACY_ENTRY.match(expression)
-            if legacy and self._validate_regex(legacy["expression"]) is None:
+            if (legacy and _is_legacy_name(legacy["name"])
+                    and self._validate_regex(legacy["expression"]) is None):
                 name, expression = legacy["name"], legacy["expression"]
         if not expression:
             return None

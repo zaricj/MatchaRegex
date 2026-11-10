@@ -348,7 +348,11 @@ class PreBuiltRegexManagerWidget(QWidget):
             QMessageBox.warning(self, "Invalid Regex", f"'{item}' is not a valid regular expression:\n{exc}")
             return
         if not self._is_duplicate(item, self._listwidget_to_list(list_widget)):
-            list_widget.addItem(QListWidgetItem(item))
+            # Store as a dict so the expression is never mistaken for a legacy
+            # "name = expression" string when loaded (name is assigned on load).
+            list_item = QListWidgetItem(item)
+            list_item.setData(ENTRY_ROLE, {"name": "", "expression": item})
+            list_widget.addItem(list_item)
         else:
             QMessageBox.warning(self, "Duplicate string in list", f"Cannot add duplicate string '{item}' into list:")
             
